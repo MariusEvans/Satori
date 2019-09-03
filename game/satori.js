@@ -41,13 +41,14 @@ var starfield = newBackground('../assets/backgrounds/space.jpg',-1230);
 const TOTAL_SHIPS = 2; //total number of ship assets
 var supernova = newShip('../assets/spaceships/supernova/supernova.png',128,128);
 var phoenix = newShip('../assets/spaceships/phoenix/phoenix.png',128,128);
-phoenix.y+=80;
+phoenix.y=canvas.width/4; //change y of player 2 so not overlapping with player 1
 var total = ["supernova","phoenix"];
 //lasers
 var singleP1 = newLaser('../assets/lasers/single.png',5,5);
 var singleP2 = newLaser('../assets/lasers/single.png',5,5);
 //exhausts
 var supernova_exhaust = newExhaust("../assets/spaceships/supernova/Exhaust/Normal_flight/Exhaust1/exhaust4.png");
+var phoneix_exhaust = newExhaust("../assets/spaceships/phoenix/Exhaust/Normal_flight/Exhaust1/exhaust4.png")
 //enemies
 var enemy_1 = newEnemy("../assets/enemies/enemy-1.png",300,300);
 //sounds
@@ -55,8 +56,9 @@ var fxShot = new Sound("../assets/sounds/laser.m4a",5,1);
 var fxExplode = new Sound("../assets/sounds/explode.m4a");
 var fxHit = new Sound("../assets/sounds/hit.m4a",5);
 var fxThrust = new Sound("../assets/sounds/thrust.m4a",1,0.5);
+var fxThrustP2 = new Sound("../assets/sounds/thrust.m4a",1,0.5);
 
-//count time to clear level
+//count time to clear level + blinking for PRESS ENTER
 window.setInterval(function()
 {
     time++;
@@ -72,7 +74,7 @@ function newGame()
     time = 0;
     pause = false;
     twoPlayer = false;
-    livesP1 = MAX_LIVES, livesP2 = MAX_LIVES;
+    livesP1 = MAX_LIVES, livesP2 = 0; //make livesP2 = 0 until two player mode activated
     leftKeyP1 = false, rightKeyP1 = false, upKeyP1 = false, downKeyP1 = false, shootKeyP1 = false;
     leftKeyP2 = false, rightKeyP2 = false, upKeyP2 = false, downKeyP2 = false, shootKeyP2 = false;
     scoreP1 = 0, scoreP2 = 0;
@@ -120,7 +122,7 @@ function newShip(url1, width1, height1)
         width: width1,
         height: height1,
         x: canvas.width/8,
-        y: canvas.height/2,
+        y: canvas.height/4,
         thrust:
         {
             x:0,
@@ -174,24 +176,26 @@ function Satori()
     this.draw = function() //DRAW AND MOVE
     {
         canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
-        drawBackground(); //draw background
-        if(livesP1>0 & livesP2>0)
+
+        drawBackground(); //draw background - regardless of if lost game or not
+        var gameOver = checkGameOver();
+        
+        if(!gameOver)
         {
-            hitTest();
+            hitTestPlayer1(); //hit test with enemies for P1
+            hitTestPlayer2(); //hit test with enemies for P2
             //shipCollision();
-            drawLaserPlayer1(); //draw and move laser
+            drawLaserPlayer1(); //draw and move laser for P1
             drawLaserPlayer2(); //draw and move laser for P2
             drawEnemies(); //draw and move enemies
             drawPlayer1(); //draw and move ship for P1
-            drawPlayer2(); //draw and move ship for P1
-            drawLives(); //draw lives, 1UP, Score
+            drawPlayer2(); //draw and move ship for P2
+            drawLives(); //draw lives, 1UP, Score, PRESS ENTER
         }
         else
         {
-            
+            //drawGameOver(); //draw the game over screen
         }
-        //tick music
-        //draw highscore
     }
     this.update = function() //EVENT LISTENERS
     {
@@ -200,7 +204,7 @@ function Satori()
             event = event || window.event;
             if(event.keyCode) 
             {
-                //PLAYER 1
+                //----------- PLAYER 1
                 if(event.keyCode==38) //up
                 {
                     console.log("Move up P1");
@@ -225,16 +229,16 @@ function Satori()
                 {
                     console.log("Shoot P1");
                     fxShot.play();
-                    singleP1.lasers.push([supernova.x + supernova.width - 25, supernova.y + (supernova.height/2)+5, singleP1.width, singleP1.height]);
+                    singleP1.lasers.push([supernova.x + supernova.width - 45, supernova.y + (supernova.height/2)-2, singleP1.width, singleP1.height]);
                     shootKeyP1 = true;
                 }
-                //PLAYER 2
+                //----------- PLAYER 2
                 if(event.keyCode==87) //up
                 {
                     console.log("Move up P2");
                     upKeyP2 = true;
                 }
-                else if(event.keyCode==83) //down
+                else if(event.keyCode==83) //down 
                 {
                     console.log("Move down P2");
                     downKeyP2 = true;
@@ -253,7 +257,7 @@ function Satori()
                 {
                     console.log("Shoot P2");
                     fxShot.play();
-                    singleP2.lasers.push([phoenix.x + phoenix.width - 25, phoenix.y + (phoenix.height/2)+5, singleP2.width, singleP2.height]);
+                    singleP2.lasers.push([phoenix.x + phoenix.width - 35, phoenix.y + (phoenix.height/2)+1, singleP2.width, singleP2.height]);
                     shootKeyP2 = true;
                 }
 
@@ -274,13 +278,14 @@ function Satori()
                     {
                         console.log("New player.");
                         twoPlayer=true;
+                        livesP2 = MAX_LIVES;
                     }
                 }
             }
         };
         document.onkeyup = function(event)
         {
-            //PLAYER 1
+            //----------- PLAYER 1
             if(event.keyCode==38 || event.keyCode==87) //up
             {
                 console.log("Stop up");
@@ -305,7 +310,7 @@ function Satori()
             {
                 console.log("Stop shooting");
             }
-            //PLAYER 2
+            //----------- PLAYER 2
             if(event.keyCode==87) //up
             {
                 console.log("Stop up P2");
@@ -383,23 +388,22 @@ function drawPlayer1(){
 function drawPlayer2(){
     if(twoPlayer)
     {
-        console.log("two player draw");
         var phoenixImg = new Image();
         phoenixImg.src = phoenix.url;
 
         //move ship
         if (rightKeyP2){ //draw exhaust when moving forward
-            fxThrust.play();
-            var supernovaExhaustImg = new Image();
-            supernovaExhaustImg.src = supernova_exhaust.url;
-            context.drawImage(supernovaExhaustImg,phoenix.x+phoenix.width/2 -55,phoenix.y+phoenix.height/2 -15);
+            fxThrustP2.play();
+            var phoenixExhaustImg = new Image();
+            phoenixExhaustImg.src = phoneix_exhaust.url;
+            context.drawImage(phoenixExhaustImg,phoenix.x+phoenix.width/2 -65,phoenix.y+phoenix.height/2 -15);
             phoenix.x += SHIP_SPEED;
         }
         else if (leftKeyP2){phoenix.x -= SHIP_SPEED;}
         if (upKeyP2){phoenix.y -= SHIP_SPEED;}
         else if (downKeyP2){phoenix.y += SHIP_SPEED;}
         
-        if (rightKeyP2==false){fxThrust.stop();}
+        if (rightKeyP2==false){fxThrustP2.stop();}
         //handle edge of screen
         if (phoenix.x <= 0){phoenix.x = 0;}
         if ((phoenix.x + phoenix.width) >= canvas.width){phoenix.x = canvas.width - phoenix.width;}
@@ -510,7 +514,7 @@ function drawLives()
         //LIVES
         for(var i = 0; i<livesP2; i++)
         {
-            context.drawImage(shipImg,20*(i*2.5) + (canvas.width-175),10,phoenix.width/2,phoenix.height/2);
+            context.drawImage(shipImg,20*(i*2.5) + (canvas.width-180),10,phoenix.width/2,phoenix.height/2);
         }
     }
 }
@@ -543,7 +547,7 @@ function drawEnemies()
         }
     } 
 }
-function hitTest()
+function hitTestPlayer1()
 {
     var remove = false;
     for (var i = 0; i < singleP1.lasers.length; i++) 
@@ -564,10 +568,46 @@ function hitTest()
         }
     }
 }
-
-function distBetweenPoints(x1,y1,x2,y2)
+function hitTestPlayer2()
 {
-    return Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1,2));
+    if(twoPlayer)
+    {
+        var remove = false;
+        for (var i = 0; i < singleP2.lasers.length; i++) 
+        {
+            for (var j = 0; j < enemy_1.enemies.length; j++) 
+            {
+                //if laser.y <= (enemy.y + enemy.height) && laser.x >= enemy.x && laser.x <= (enemy.x + enemy.width)
+                if (singleP2.lasers[i][1] <= (enemy_1.enemies[j][1] + enemy_1.enemies[j][3]) && singleP2.lasers[i][0] >= enemy_1.enemies[j][0] && singleP2.lasers[i][0] <= (enemy_1.enemies[j][0] + enemy_1.enemies[j][2])) {
+                    remove = true;
+                    scoreP2 += 70;
+                    fxHit.play();
+                    enemy_1.enemies.splice(j, 1);
+                }
+            }
+            if (remove == true) {
+                singleP2.lasers.splice(i, 1);
+                remove = false;
+            }
+        }
+    }
+}
+function checkGameOver()
+{
+    var gameOver;
+    if(twoPlayer)
+    {
+        if(livesP1>0 && livesP2>0)
+        {
+            gameOver = false;
+        }
+    } else{
+        if(livesP1>0)
+        {
+            gameOver = false;
+        }
+    }
+    return gameOver;
 }
 
 function animate() 
@@ -581,7 +621,9 @@ function animate()
         //PAUSED TEXT
         context.font = "50px Courier New";
         context.fillStyle = "white";
-        context.fillText("PAUSED",canvas.width/2.5,canvas.height/2);
-        context.fillText("PRESS P TO UNPAUSE",canvas.width/3,canvas.height/2 + 40);
+        context.fillText("PAUSED",canvas.width/2.25,canvas.height/2);
+
+        context.font = "30px Courier New";
+        context.fillText("PRESS P TO UNPAUSE",canvas.width/2.5 -5,canvas.height/2 + 40);
     }
 }
