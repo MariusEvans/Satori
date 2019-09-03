@@ -30,6 +30,8 @@ var pause, time, livesP1, livesP2, scoreP1, scoreP2, twoPlayer;
 var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootKeyP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootKeyP2;
 
+var showWorkings = -1; // just for testing, pressing forward slash during game shows various background data
+
 //sound effects
 
 //music
@@ -83,7 +85,7 @@ function newGame()
     for (var i = 0; i < MAX_ENEMIES; i++) 
     {
         enemy_1.x = canvas.width+Math.floor(Math.random()*40);
-        enemy_1.enemies.push([enemy_1.x, Math.floor(Math.random()*(canvas.height-30)), enemy_1.width, enemy_1.height, ENEMY_SPEED]);
+        enemy_1.enemies.push([enemy_1.x + (i * 150), Math.floor(Math.random()*(canvas.height-30)), enemy_1.width, enemy_1.height, ENEMY_SPEED]);
     }
 }
 function newLevel()
@@ -281,6 +283,10 @@ function Satori()
                         livesP2 = MAX_LIVES;
                     }
                 }
+                if(event.keyCode == 191) // FORWARD SLASH to show debug data
+                {
+                    showWorkings *= -1;
+                }
             }
         };
         document.onkeyup = function(event)
@@ -344,19 +350,21 @@ function drawBackground() {
     starfieldImg.src = starfield.url;
 
     context.drawImage(starfieldImg,starfield.x,starfield.y,canvas.width,canvas.height);
-    context.drawImage(starfieldImg,starfield.x2,starfield.y,canvas.width,canvas.height);
+    context.drawImage(starfieldImg,starfield.x + canvas.width,starfield.y,canvas.width,canvas.height);
+    
+    if (showWorkings == 1) {
+        context.fillStyle = "lightgreen";
+        context.fillRect(starfield.x + canvas.width, 0, 2, 704);
+    }
 
-    if(starfield.x < starfield.respawnEdge) {
-        starfield.x = canvas.width;
+    if(starfield.x <= (canvas.width * -1)) {
+        starfield.x += canvas.width;
         //console.log("reset x");
     }
-    if(starfield.x2 < starfield.respawnEdge) {
-        starfield.x2 = canvas.width;
-        //console.log("reset x2");
-    }
+
     starfield.x -= BACKGROUND_SPEED;
-    starfield.x2 -= BACKGROUND_SPEED;
 }
+
 function drawPlayer1(){
     var supernovaImg = new Image();
     supernovaImg.src = supernova.url;
@@ -428,8 +436,10 @@ function drawLaserPlayer1(){
             } 
             if(singleP1.lasers[i][0] > canvas.width) { //remove laser when hits edge of screen
                 singleP1.lasers.splice(i,1);
+                i--;
             }
         }
+
     }
 
     //draw laser
@@ -458,6 +468,7 @@ function drawLaserPlayer2(){
                 } 
                 if(singleP2.lasers[i][0] > canvas.width) { //remove laser when hits edge of screen
                     singleP2.lasers.splice(i,1);
+                    i--;
                 }
             }
         }
@@ -528,10 +539,9 @@ function drawEnemies()
     {
         for (var i = 0; i < enemy_1.enemies.length; i++) 
         {
-            if(enemy_1.enemies[i][0] > 0) {
+            if(enemy_1.enemies[i][0] > (enemy_1.enemies[i][2]/5) * -1) {
                 enemy_1.enemies[i][0] -= ENEMY_SPEED;
-            } 
-            if(enemy_1.enemies[i][0] <= 0) { //remove enemy when hits edge of screen
+            } else { //remove enemy when hits edge of screen
                 enemy_1.enemies[i][0] = canvas.width+Math.floor(Math.random()*40);
                 enemy_1.enemies[i][1] = Math.floor(Math.random()*(canvas.height-30));
                 //enemy_1.enemies.splice(i,1);
@@ -544,28 +554,35 @@ function drawEnemies()
     {
         for (var i = 0; i < enemy_1.enemies.length; i++) {
             context.drawImage(enemy_1Img,enemy_1.enemies[i][0],enemy_1.enemies[i][1],enemy_1.enemies[i][2]/5,enemy_1.enemies[i][3]/5);
+            
+            if (showWorkings == 1) {
+                context.fillStyle = "lightgreen";
+                context.fillRect(enemy_1.enemies[i][0], enemy_1.enemies[i][1],
+                                 enemy_1.enemies[i][2] / 5, enemy_1.enemies[i][3] / 5);
+            }
+            
         }
     } 
 }
 function hitTestPlayer1()
 {
-    var remove = false;
     for (var i = 0; i < singleP1.lasers.length; i++) 
     {
         for (var j = 0; j < enemy_1.enemies.length; j++) 
         {
             //if laser.y <= (enemy.y + enemy.height) && laser.x >= enemy.x && laser.x <= (enemy.x + enemy.width)
-            if (singleP1.lasers[i][1] <= (enemy_1.enemies[j][1] + enemy_1.enemies[j][3]) && singleP1.lasers[i][0] >= enemy_1.enemies[j][0] && singleP1.lasers[i][0] <= (enemy_1.enemies[j][0] + enemy_1.enemies[j][2])) {
-                remove = true;
+            if (singleP1.lasers[i][1] >= enemy_1.enemies[j][1]
+                && singleP1.lasers[i][1] <= (enemy_1.enemies[j][1] + (enemy_1.enemies[j][3] / 5))
+                && singleP1.lasers[i][0] >= enemy_1.enemies[j][0]
+                && singleP1.lasers[i][0] <= (enemy_1.enemies[j][0] + (enemy_1.enemies[j][2] / 5))) {
                 scoreP1 += 70;
                 fxHit.play();
                 enemy_1.enemies.splice(j, 1);
+                singleP1.lasers.splice(i, 1);
+                i--;
             }
         }
-        if (remove == true) {
-            singleP1.lasers.splice(i, 1);
-            remove = false;
-        }
+
     }
 }
 function hitTestPlayer2()
