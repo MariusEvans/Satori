@@ -563,8 +563,12 @@ function drawEnemies()
             
             if (showWorkings == 1) {
                 context.fillStyle = "lightgreen";
-                context.fillRect(enemy_1.enemies[i][0], enemy_1.enemies[i][1],
-                enemy_1.enemies[i][2] / 5, enemy_1.enemies[i][3] / 5);
+                
+                context.beginPath();
+                context.arc(enemy_1.enemies[i][0] + enemy_1.enemies[i][2]/10,
+                            enemy_1.enemies[i][1] + enemy_1.enemies[i][3]/10,
+                            enemy_1.enemies[i][2]/10, 0, 2*Math.PI);
+                context.fill();
             }
             
         }
@@ -575,12 +579,12 @@ function hitTestPlayer1()
     for (var i = 0; i < singleP1.lasers.length; i++) 
     {
         for (var j = 0; j < enemy_1.enemies.length; j++) 
-        {
-            //if laser.y <= (enemy.y + enemy.height) && laser.x >= enemy.x && laser.x <= (enemy.x + enemy.width)
-            if (singleP1.lasers[i][1] >= enemy_1.enemies[j][1]
-                && singleP1.lasers[i][1] <= (enemy_1.enemies[j][1] + (enemy_1.enemies[j][3] / 5))
-                && singleP1.lasers[i][0] >= enemy_1.enemies[j][0]
-                && singleP1.lasers[i][0] <= (enemy_1.enemies[j][0] + (enemy_1.enemies[j][2] / 5))) {
+        {                
+            if (circlesCollide(singleP1.lasers[i][0] + 2.5, singleP1.lasers[i][1] + 2.5, 5,
+                enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
+                enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
+                (enemy_1.enemies[j][2] / 5) / 2) == true) {
+                
                 scoreP1 += 70;
                 fxHit.play();
                 enemy_1.enemies.splice(j, 1);
@@ -599,11 +603,11 @@ function hitTestPlayer2()
         {
             for (var j = 0; j < enemy_1.enemies.length; j++) 
             {
-                //if laser.y <= (enemy.y + enemy.height) && laser.x >= enemy.x && laser.x <= (enemy.x + enemy.width)
-                if (singleP2.lasers[i][1] >= enemy_1.enemies[j][1]
-                    && singleP2.lasers[i][1] <= (enemy_1.enemies[j][1] + (enemy_1.enemies[j][3] / 5))
-                    && singleP2.lasers[i][0] >= enemy_1.enemies[j][0]
-                    && singleP2.lasers[i][0] <= (enemy_1.enemies[j][0] + (enemy_1.enemies[j][2] / 5))) {
+                if (circlesCollide(singleP2.lasers[i][0] + 2.5, singleP2.lasers[i][1] + 2.5, 5,
+                    enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
+                    enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
+                    (enemy_1.enemies[j][2] / 5) / 2) == true) {
+                    
                     scoreP2 += 70;
                     fxHit.play();
                     enemy_1.enemies.splice(j, 1);
@@ -621,15 +625,25 @@ function shipCollisionPlayer1()
     {
         for (var j = 0; j < enemy_1.enemies.length; j++) 
         {
-            //[0] = x, [1] = y, [2] = width, [3] = height, [4] = speed
-            if (supernova.y + supernova.height >= enemy_1.enemies[j][1]
-                && supernova.y <= (enemy_1.enemies[j][1] + (enemy_1.enemies[j][3] / 5))
-                && supernova.x >= enemy_1.enemies[j][0]
-                && supernova.x <= (enemy_1.enemies[j][0] + (enemy_1.enemies[j][2] / 5))) {
+            if (showWorkings == 1) {
+                context.fillStyle = "lightgreen";
+                context.beginPath();
+                context.arc(supernova.x + (supernova.width / 2),
+                supernova.y + (supernova.height / 2), supernova.width / 4, 0, 2*Math.PI);
+                context.fill();
+            }
+            
+            if (circlesCollide(supernova.x + (supernova.width / 2),
+                supernova.y + (supernova.height / 2), supernova.width / 4,
+                enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
+                enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
+                (enemy_1.enemies[j][2] / 5) / 2) == true) {
+                
                 livesP1--;
                 supernova = newShip('../assets/spaceships/supernova/supernova.png',128,128);
                 fxExplode.play();
                 enemy_1.enemies.splice(j, 1);
+                j--;
             }
         }
     }    
@@ -640,16 +654,26 @@ function shipCollisionPlayer2()
     {
         for (var j = 0; j < enemy_1.enemies.length; j++) 
         {
-            //[0] = x, [1] = y, [2] = width, [3] = height, [4] = speed
-            if (phoenix.y + phoenix.height >= enemy_1.enemies[j][1]
-                && phoenix.y <= (enemy_1.enemies[j][1] + (enemy_1.enemies[j][3] / 5))
-                && phoenix.x >= enemy_1.enemies[j][0]
-                && phoenix.x <= (enemy_1.enemies[j][0] + (enemy_1.enemies[j][2] / 5))) {
+            if (showWorkings == 1) {
+                context.fillStyle = "lightgreen";
+                context.beginPath();
+                context.arc(phoenix.x + (phoenix.width / 2),
+                phoenix.y + (phoenix.height / 2), phoenix.width / 4, 0, 2*Math.PI);
+                context.fill();
+            }
+                
+            if (circlesCollide(phoenix.x + (phoenix.width / 2),
+                phoenix.y + (phoenix.height / 2), phoenix.width / 4,
+                enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
+                enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
+                (enemy_1.enemies[j][2] / 5) / 2) == true) {
+                
                 livesP2--;
                 phoenix = newShip('../assets/spaceships/phoenix/phoenix.png',128,128);
                 phoenix.y=canvas.width/4; //change y of player 2 so not overlapping with player 1
                 fxExplode.play();
                 enemy_1.enemies.splice(j, 1);
+                j--;
             }
         }
     }
@@ -676,6 +700,11 @@ function checkGameOver()
         }
     }
     return gameOver;
+}
+
+function circlesCollide(firstX, firstY, firstR, secondX, secondY, secondR) {
+    if (Math.sqrt(Math.pow(firstX - secondX, 2) + Math.pow(firstY - secondY, 2)) < firstR + secondR) return true;
+    return false;
 }
 
 function animate() 
