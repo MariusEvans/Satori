@@ -10,10 +10,13 @@ var Satori = new Satori();
 const FPS = 60;
 const BLINK_TIME = 3; //blink every x seconds
 const BACKGROUND_SPEED = 3; //speed of background in pixels per second
+const DEBUG_MODE = true; //when debug mode enabled - now you can press / to turn debug mode on or off
+const INVINCIBLE = false; //loses no lives on ship collisions if true
 
 //SHIP
 const MAX_LIVES = 3;
 const SHIP_SPEED = 7; //ship speed in pixels per second
+const INVINCIBLE_TIME = 4; //time invincible for when respawning
 
 //SHOTS
 const SHOT_SPEED = 30; //shot speed in pixels per second
@@ -38,7 +41,7 @@ var showWorkings = -1; // just for testing, pressing forward slash during game s
 
 //---------- ASSETS
 //backgrounds
-var starfield = newBackground('../assets/backgrounds/space.jpg',-1230);
+var starfield = newBackground('../assets/backgrounds/space.jpg');
 //ships
 const TOTAL_SHIPS = 2; //total number of ship assets
 var supernova = newShip('../assets/spaceships/supernova/supernova.png',128,128);
@@ -132,11 +135,10 @@ function newShip(url1, width1, height1)
         }
     }
 }
-function newBackground(url1,respawnEdge1)
+function newBackground(url1)
 {
     return{
         url: url1,
-        respawnEdge: respawnEdge1,
         x: 0,
         y: 0,
         x2: canvas.width,
@@ -186,7 +188,8 @@ function Satori()
         {
             hitTestPlayer1(); //hit test with enemies for P1
             hitTestPlayer2(); //hit test with enemies for P2
-            //shipCollision();
+            shipCollisionPlayer1(); //ship collision for P1
+            shipCollisionPlayer2(); //ship collision for P2
             drawLaserPlayer1(); //draw and move laser for P1
             drawLaserPlayer2(); //draw and move laser for P2
             drawEnemies(); //draw and move enemies
@@ -285,7 +288,10 @@ function Satori()
                 }
                 if(event.keyCode == 191) // FORWARD SLASH to show debug data
                 {
-                    showWorkings *= -1;
+                    if(DEBUG_MODE)
+                    {
+                        showWorkings *= -1;
+                    }
                 }
             }
         };
@@ -558,7 +564,7 @@ function drawEnemies()
             if (showWorkings == 1) {
                 context.fillStyle = "lightgreen";
                 context.fillRect(enemy_1.enemies[i][0], enemy_1.enemies[i][1],
-                                 enemy_1.enemies[i][2] / 5, enemy_1.enemies[i][3] / 5);
+                enemy_1.enemies[i][2] / 5, enemy_1.enemies[i][3] / 5);
             }
             
         }
@@ -589,22 +595,61 @@ function hitTestPlayer2()
 {
     if(twoPlayer)
     {
-        var remove = false;
         for (var i = 0; i < singleP2.lasers.length; i++) 
         {
             for (var j = 0; j < enemy_1.enemies.length; j++) 
             {
                 //if laser.y <= (enemy.y + enemy.height) && laser.x >= enemy.x && laser.x <= (enemy.x + enemy.width)
-                if (singleP2.lasers[i][1] <= (enemy_1.enemies[j][1] + enemy_1.enemies[j][3]) && singleP2.lasers[i][0] >= enemy_1.enemies[j][0] && singleP2.lasers[i][0] <= (enemy_1.enemies[j][0] + enemy_1.enemies[j][2])) {
-                    remove = true;
+                if (singleP2.lasers[i][1] >= enemy_1.enemies[j][1]
+                    && singleP2.lasers[i][1] <= (enemy_1.enemies[j][1] + (enemy_1.enemies[j][3] / 5))
+                    && singleP2.lasers[i][0] >= enemy_1.enemies[j][0]
+                    && singleP2.lasers[i][0] <= (enemy_1.enemies[j][0] + (enemy_1.enemies[j][2] / 5))) {
                     scoreP2 += 70;
                     fxHit.play();
                     enemy_1.enemies.splice(j, 1);
+                    singleP2.lasers.splice(i, 1);
+                    i--;
                 }
             }
-            if (remove == true) {
-                singleP2.lasers.splice(i, 1);
-                remove = false;
+    
+        }
+    }
+}
+function shipCollisionPlayer1()
+{
+    if(!INVINCIBLE)
+    {
+        for (var j = 0; j < enemy_1.enemies.length; j++) 
+        {
+            //[0] = x, [1] = y, [2] = width, [3] = height, [4] = speed
+            if (supernova.y + supernova.height >= enemy_1.enemies[j][1]
+                && supernova.y <= (enemy_1.enemies[j][1] + (enemy_1.enemies[j][3] / 5))
+                && supernova.x >= enemy_1.enemies[j][0]
+                && supernova.x <= (enemy_1.enemies[j][0] + (enemy_1.enemies[j][2] / 5))) {
+                livesP1--;
+                supernova = newShip('../assets/spaceships/supernova/supernova.png',128,128);
+                fxExplode.play();
+                enemy_1.enemies.splice(j, 1);
+            }
+        }
+    }    
+}
+function shipCollisionPlayer2()
+{
+    if(twoPlayer && !INVINCIBLE)
+    {
+        for (var j = 0; j < enemy_1.enemies.length; j++) 
+        {
+            //[0] = x, [1] = y, [2] = width, [3] = height, [4] = speed
+            if (phoenix.y + phoenix.height >= enemy_1.enemies[j][1]
+                && phoenix.y <= (enemy_1.enemies[j][1] + (enemy_1.enemies[j][3] / 5))
+                && phoenix.x >= enemy_1.enemies[j][0]
+                && phoenix.x <= (enemy_1.enemies[j][0] + (enemy_1.enemies[j][2] / 5))) {
+                livesP2--;
+                phoenix = newShip('../assets/spaceships/phoenix/phoenix.png',128,128);
+                phoenix.y=canvas.width/4; //change y of player 2 so not overlapping with player 1
+                fxExplode.play();
+                enemy_1.enemies.splice(j, 1);
             }
         }
     }
@@ -618,10 +663,16 @@ function checkGameOver()
         {
             gameOver = false;
         }
+        else{
+            gameOver = true;
+        }
     } else{
         if(livesP1>0)
         {
             gameOver = false;
+        }
+        else{
+            gameOver = true;
         }
     }
     return gameOver;
