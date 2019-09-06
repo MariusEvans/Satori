@@ -17,19 +17,20 @@ const INVINCIBLE = false; //loses no lives on ship collisions if true
 const MAX_LIVES = 3;
 const SHIP_SPEED = 7; //ship speed in pixels per second
 const INVINCIBLE_TIME = 4; //time invincible for when respawning
+const SHIP_EXPLODE_DUR = 0.8; //time it takes for ship to explode
 
 //SHOTS
 const SHOT_SPEED = 30; //shot speed in pixels per second
 const MAX_SHOTS = 10;
 
 //ENEMIES
-MAX_ENEMIES = 5; //max starting enemies
+MAX_ENEMIES = 6; //max starting enemies
 ENEMY_SPEED = 8; //enemy speed in pixels per second
 
 //TEXT
 
 //---------- GAME VARS
-var pause, time, livesP1, livesP2, scoreP1, scoreP2, twoPlayer;
+var pause, time, livesP1, livesP2, scoreP1, scoreP2, explodingP1, twoPlayer;
 var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootKeyP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootKeyP2;
 
@@ -62,6 +63,18 @@ var fxExplode = new Sound("../assets/sounds/explode.m4a");
 var fxHit = new Sound("../assets/sounds/hit.m4a",5);
 var fxThrust = new Sound("../assets/sounds/thrust.m4a",1,0.5);
 var fxThrustP2 = new Sound("../assets/sounds/thrust.m4a",1,0.5);
+//explosions
+var explosion1 = newExplosion("../assets/explosions/Explosion1/Explosion1_5.png")
+
+//images
+var starfieldImg = new Image(); starfieldImg.src = starfield.url;
+var supernovaImg = new Image(); supernovaImg.src = supernova.url;
+var supernovaExhaustImg = new Image(); supernovaExhaustImg.src = supernova_exhaust.url;
+var phoenixImg = new Image(); phoenixImg.src = phoenix.url;
+var phoenixExhaustImg = new Image(); phoenixExhaustImg.src = phoneix_exhaust.url;
+var shipImg = new Image(); //image for drawing the lives on top left/right
+var enemy_1Img = new Image(); enemy_1Img.src = enemy_1.url;
+var explosion1Img = new Image(); explosion1Img.src = explosion1.url;
 
 //count time to clear level + blinking for PRESS ENTER
 window.setInterval(function()
@@ -83,6 +96,7 @@ function newGame()
     leftKeyP1 = false, rightKeyP1 = false, upKeyP1 = false, downKeyP1 = false, shootKeyP1 = false;
     leftKeyP2 = false, rightKeyP2 = false, upKeyP2 = false, downKeyP2 = false, shootKeyP2 = false;
     scoreP1 = 0, scoreP2 = 0;
+    explodingP1 = false;
 
     //make all new enemies
     for (var i = 0; i < MAX_ENEMIES; i++) 
@@ -174,6 +188,14 @@ function newEnemy(url1,width1,height1)
         enemies: []
     }
 }
+function newExplosion(url1)
+{
+    return{
+        url: url1,
+        x: 0,
+        y: 0,
+    }
+}
 
 function Satori()
 {
@@ -196,6 +218,7 @@ function Satori()
             drawPlayer1(); //draw and move ship for P1
             drawPlayer2(); //draw and move ship for P2
             drawLives(); //draw lives, 1UP, Score, PRESS ENTER
+            explodePlayer1(); //draw explosion for P1
         }
         else
         {
@@ -352,16 +375,10 @@ function Satori()
     }
 }
 function drawBackground() {
-    var starfieldImg = new Image();
-    starfieldImg.src = starfield.url;
-
     context.drawImage(starfieldImg,starfield.x,starfield.y,canvas.width,canvas.height);
     context.drawImage(starfieldImg,starfield.x + canvas.width,starfield.y,canvas.width,canvas.height);
     
-    if (showWorkings == 1) {
-        context.fillStyle = "lightgreen";
-        context.fillRect(starfield.x + canvas.width, 0, 2, 704);
-    }
+    showDebug("Rect",starfield.x + canvas.width, 0, 2, 704, 0);
 
     if(starfield.x <= (canvas.width * -1)) {
         starfield.x += canvas.width;
@@ -372,44 +389,33 @@ function drawBackground() {
 }
 
 function drawPlayer1(){
-    var supernovaImg = new Image();
-    supernovaImg.src = supernova.url;
-
-    var phoenixImg = new Image();
-    phoenix.src = phoenix.url;
-
-    //move ship
-    if (rightKeyP1){ //draw exhaust when moving forward
-        fxThrust.play();
-        var supernovaExhaustImg = new Image();
-        supernovaExhaustImg.src = supernova_exhaust.url;
-        context.drawImage(supernovaExhaustImg,supernova.x+supernova.width/2 -55,supernova.y+supernova.height/2 -15);
-        supernova.x += SHIP_SPEED;
+    if(livesP1>0){
+        //move ship
+        if (rightKeyP1){ //draw exhaust when moving forward
+            fxThrust.play();
+            context.drawImage(supernovaExhaustImg,supernova.x+supernova.width/2 -55,supernova.y+supernova.height/2 -15);
+            supernova.x += SHIP_SPEED;
+        }
+        else if (leftKeyP1){supernova.x -= SHIP_SPEED;}
+        if (upKeyP1){supernova.y -= SHIP_SPEED;}
+        else if (downKeyP1){supernova.y += SHIP_SPEED;}
+        
+        if (rightKeyP1==false){fxThrust.stop();}
+        //handle edge of screen
+        if (supernova.x <= 0){supernova.x = 0;}
+        if ((supernova.x + supernova.width) >= canvas.width){supernova.x = canvas.width - supernova.width;}
+        if (supernova.y <= 0){supernova.y = 0;}
+        if ((supernova.y + supernova.height) >= canvas.height){supernova.y = canvas.height - supernova.height;}
+        
+        context.drawImage(supernovaImg,supernova.x,supernova.y);
     }
-    else if (leftKeyP1){supernova.x -= SHIP_SPEED;}
-    if (upKeyP1){supernova.y -= SHIP_SPEED;}
-    else if (downKeyP1){supernova.y += SHIP_SPEED;}
-    
-    if (rightKeyP1==false){fxThrust.stop();}
-    //handle edge of screen
-    if (supernova.x <= 0){supernova.x = 0;}
-    if ((supernova.x + supernova.width) >= canvas.width){supernova.x = canvas.width - supernova.width;}
-    if (supernova.y <= 0){supernova.y = 0;}
-    if ((supernova.y + supernova.height) >= canvas.height){supernova.y = canvas.height - supernova.height;}
-    
-    context.drawImage(supernovaImg,supernova.x,supernova.y);
 }
 function drawPlayer2(){
-    if(twoPlayer)
+    if(twoPlayer && livesP2>0)
     {
-        var phoenixImg = new Image();
-        phoenixImg.src = phoenix.url;
-
         //move ship
         if (rightKeyP2){ //draw exhaust when moving forward
             fxThrustP2.play();
-            var phoenixExhaustImg = new Image();
-            phoenixExhaustImg.src = phoneix_exhaust.url;
             context.drawImage(phoenixExhaustImg,phoenix.x+phoenix.width/2 -65,phoenix.y+phoenix.height/2 -15);
             phoenix.x += SHIP_SPEED;
         }
@@ -428,37 +434,39 @@ function drawPlayer2(){
     }
 }
 function drawLaserPlayer1(){
-    // var singleP1Img = new Image();
-    // singleP1Img.src = singleP1.url;
-    //context.drawImage(singleP1Img,singleP1.x,singleP1.y);
+    if(livesP1>0){
+        // var singleP1Img = new Image();
+        // singleP1Img.src = singleP1.url;
+        //context.drawImage(singleP1Img,singleP1.x,singleP1.y);
 
-    //move laser
-    if(singleP1.lasers.length>0)
-    {
-        for (var i = 0; i < singleP1.lasers.length; i++) 
+        //move laser
+        if(singleP1.lasers.length>0)
         {
-            if(singleP1.lasers[i][0] > 0) {
-                singleP1.lasers[i][0] += SHOT_SPEED;
-            } 
-            if(singleP1.lasers[i][0] > canvas.width) { //remove laser when hits edge of screen
-                singleP1.lasers.splice(i,1);
-                i--;
+            for (var i = 0; i < singleP1.lasers.length; i++) 
+            {
+                if(singleP1.lasers[i][0] > 0) {
+                    singleP1.lasers[i][0] += SHOT_SPEED;
+                } 
+                if(singleP1.lasers[i][0] > canvas.width) { //remove laser when hits edge of screen
+                    singleP1.lasers.splice(i,1);
+                    i--;
+                }
             }
+
         }
 
+        //draw laser
+        if(singleP1.lasers.length>0)
+        {
+            for (var i = 0; i < singleP1.lasers.length; i++) {
+                context.fillStyle = 'red';
+                context.fillRect(singleP1.lasers[i][0],singleP1.lasers[i][1],singleP1.lasers[i][2],singleP1.lasers[i][3]);
+            }
+        } 
     }
-
-    //draw laser
-    if(singleP1.lasers.length>0)
-    {
-        for (var i = 0; i < singleP1.lasers.length; i++) {
-            context.fillStyle = 'red';
-            context.fillRect(singleP1.lasers[i][0],singleP1.lasers[i][1],singleP1.lasers[i][2],singleP1.lasers[i][3]);
-        }
-    } 
 }
 function drawLaserPlayer2(){
-    if(twoPlayer)
+    if(twoPlayer && livesP2>0)
     {
         // var singleP1Img = new Image();
         // singleP1Img.src = singleP1.url;
@@ -490,9 +498,7 @@ function drawLaserPlayer2(){
     }
 }
 function drawLives()
-{
-    var shipImg = new Image();
-    
+{   
     //1UP
     context.font = "25px Courier New";
     context.fillStyle = "white";
@@ -537,9 +543,6 @@ function drawLives()
 }
 function drawEnemies()
 {
-    var enemy_1Img = new Image();
-    enemy_1Img.src = enemy_1.url;
-
     //move enemy
     if(enemy_1.enemies.length>0)
     {
@@ -561,43 +564,36 @@ function drawEnemies()
         for (var i = 0; i < enemy_1.enemies.length; i++) {
             context.drawImage(enemy_1Img,enemy_1.enemies[i][0],enemy_1.enemies[i][1],enemy_1.enemies[i][2]/5,enemy_1.enemies[i][3]/5);
             
-            if (showWorkings == 1) {
-                context.fillStyle = "lightgreen";
-                
-                context.beginPath();
-                context.arc(enemy_1.enemies[i][0] + enemy_1.enemies[i][2]/10,
-                            enemy_1.enemies[i][1] + enemy_1.enemies[i][3]/10,
-                            enemy_1.enemies[i][2]/10, 0, 2*Math.PI);
-                context.fill();
-            }
-            
+            showDebug("Arc",enemy_1.enemies[i][0] + enemy_1.enemies[i][2]/10,enemy_1.enemies[i][1] + enemy_1.enemies[i][3]/10, 0, 0, enemy_1.enemies[i][2]/10);
         }
     } 
 }
 function hitTestPlayer1()
 {
-    for (var i = 0; i < singleP1.lasers.length; i++) 
-    {
-        for (var j = 0; j < enemy_1.enemies.length; j++) 
-        {                
-            if (circlesCollide(singleP1.lasers[i][0] + 2.5, singleP1.lasers[i][1] + 2.5, 5,
-                enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
-                enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
-                (enemy_1.enemies[j][2] / 5) / 2) == true) {
-                
-                scoreP1 += 70;
-                fxHit.play();
-                enemy_1.enemies.splice(j, 1);
-                singleP1.lasers.splice(i, 1);
-                i--;
+    if(livesP1>0){
+        for (var i = 0; i < singleP1.lasers.length; i++) 
+        {
+            for (var j = 0; j < enemy_1.enemies.length; j++) 
+            {                
+                if (circlesCollide(singleP1.lasers[i][0] + 2.5, singleP1.lasers[i][1] + 2.5, 5,
+                    enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
+                    enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
+                    (enemy_1.enemies[j][2] / 5) / 2) == true) {
+                    
+                    scoreP1 += 70;
+                    fxHit.play();
+                    enemy_1.enemies.splice(j, 1);
+                    singleP1.lasers.splice(i, 1);
+                    i--;
+                }
             }
-        }
 
-    }
+        }
+    }  
 }
 function hitTestPlayer2()
 {
-    if(twoPlayer)
+    if(twoPlayer && livesP2>0)
     {
         for (var i = 0; i < singleP2.lasers.length; i++) 
         {
@@ -621,27 +617,23 @@ function hitTestPlayer2()
 }
 function shipCollisionPlayer1()
 {
-    if(!INVINCIBLE)
+    if(!INVINCIBLE && livesP1>0)
     {
         for (var j = 0; j < enemy_1.enemies.length; j++) 
         {
-            if (showWorkings == 1) {
-                context.fillStyle = "lightgreen";
-                context.beginPath();
-                context.arc(supernova.x + (supernova.width / 2),
-                supernova.y + (supernova.height / 2), supernova.width / 4, 0, 2*Math.PI);
-                context.fill();
-            }
+            showDebug("Arc",supernova.x + (supernova.width / 2),supernova.y + (supernova.height / 2),0,0,supernova.width / 4);
             
             if (circlesCollide(supernova.x + (supernova.width / 2),
                 supernova.y + (supernova.height / 2), supernova.width / 4,
                 enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
                 enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
                 (enemy_1.enemies[j][2] / 5) / 2) == true) {
-                
+
+                explodingP1 = true;
+                explosion1.x = supernova.x;
+                explosion1.y = supernova.y;
+
                 livesP1--;
-                supernova = newShip('../assets/spaceships/supernova/supernova.png',128,128);
-                fxExplode.play();
                 enemy_1.enemies.splice(j, 1);
                 j--;
             }
@@ -650,17 +642,11 @@ function shipCollisionPlayer1()
 }
 function shipCollisionPlayer2()
 {
-    if(twoPlayer && !INVINCIBLE)
+    if(twoPlayer && !INVINCIBLE && livesP2>0)
     {
         for (var j = 0; j < enemy_1.enemies.length; j++) 
         {
-            if (showWorkings == 1) {
-                context.fillStyle = "lightgreen";
-                context.beginPath();
-                context.arc(phoenix.x + (phoenix.width / 2),
-                phoenix.y + (phoenix.height / 2), phoenix.width / 4, 0, 2*Math.PI);
-                context.fill();
-            }
+            showDebug("Arc",phoenix.x + (phoenix.width / 2),phoenix.y + (phoenix.height / 2),0,0,phoenix.width / 4);
                 
             if (circlesCollide(phoenix.x + (phoenix.width / 2),
                 phoenix.y + (phoenix.height / 2), phoenix.width / 4,
@@ -687,7 +673,7 @@ function checkGameOver()
         {
             gameOver = false;
         }
-        else{
+        else if(livesP1<=0 && livesP2<=0){
             gameOver = true;
         }
     } else{
@@ -701,10 +687,46 @@ function checkGameOver()
     }
     return gameOver;
 }
+function explodePlayer1()
+{
+    if(explodingP1){
+
+        fxExplode.play();
+        for(var z = 0; z<Math.ceil(SHIP_EXPLODE_DUR+2 * FPS); z++)
+        {
+            context.drawImage(explosion1Img,explosion1.x,explosion1.y);
+        }
+        explodingP1 = false;
+        
+        supernova = newShip('../assets/spaceships/supernova/supernova.png',128,128);
+    }
+}
 
 function circlesCollide(firstX, firstY, firstR, secondX, secondY, secondR) {
     if (Math.sqrt(Math.pow(firstX - secondX, 2) + Math.pow(firstY - secondY, 2)) < firstR + secondR) return true;
     return false;
+}
+function showDebug(Shape, X,Y,W,H,R)
+{
+    var x = X, y = Y;
+    var shape = Shape;
+    var width = W, height = H;
+    var radius = R;
+
+    if(showWorkings==1){
+        context.fillStyle = "lightgreen";
+        
+        if(shape=="Rect"){ //draw background debug line
+            context.fillRect(x, y, width, height);
+        }
+        if(shape=="Arc"){ //draw debug circles around ships + enemies
+            context.beginPath();
+            context.arc(x,
+                        y,
+                        radius, 0, 2*Math.PI);
+            context.fill();
+        }
+    }
 }
 
 function animate() 
