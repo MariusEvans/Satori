@@ -16,7 +16,8 @@ const INVINCIBLE = false; //loses no lives on ship collisions if true
 //SHIP
 const MAX_LIVES = 3;
 const SHIP_SPEED = 7; //ship speed in pixels per second
-const INVINCIBLE_TIME = 4; //time invincible for when respawning
+const SHIP_INVINCIBILITY_DUR = 2; //dur of ship invincibility when respawning
+const SHIP_BLINK_DUR = 0.1; //dur of ship blinking during invincibility
 const SHIP_EXPLODE_DUR = 0.8; //time it takes for ship to explode
 
 //SHOTS
@@ -142,6 +143,8 @@ function newShip(url1, width1, height1)
         height: height1,
         x: canvas.width/8,
         y: canvas.height/4,
+        blinkNo: Math.ceil(SHIP_INVINCIBILITY_DUR / SHIP_BLINK_DUR),
+        blinkTime: Math.ceil(SHIP_BLINK_DUR*FPS),
         thrust:
         {
             x:0,
@@ -307,6 +310,8 @@ function Satori()
                         console.log("New player.");
                         twoPlayer=true;
                         livesP2 = MAX_LIVES;
+                        phoenix = newShip('../assets/spaceships/phoenix/phoenix.png',128,128);
+                        phoenix.y=canvas.width/4; //change y of player 2 so not overlapping with player 1
                     }
                 }
                 if(event.keyCode == 191) // FORWARD SLASH to show debug data
@@ -389,7 +394,9 @@ function drawBackground() {
 }
 
 function drawPlayer1(){
-    if(livesP1>0){
+    var blinkOn = supernova.blinkNo % 2 == 0; //var to manage drawing/not drawing ship during invincibility
+    
+    if(livesP1>0 && blinkOn){
         //move ship
         if (rightKeyP1){ //draw exhaust when moving forward
             fxThrust.play();
@@ -409,9 +416,23 @@ function drawPlayer1(){
         
         context.drawImage(supernovaImg,supernova.x,supernova.y);
     }
+
+    if(supernova.blinkNo>0)
+    {
+        //deincrement blink time
+        supernova.blinkTime--;
+        //deincrement blink No
+        if(supernova.blinkTime==0)
+        {
+            supernova.blinkTime = Math.ceil(SHIP_BLINK_DUR * FPS);
+            supernova.blinkNo--;
+        }
+    }
 }
 function drawPlayer2(){
-    if(twoPlayer && livesP2>0)
+    var blinkOn = phoenix.blinkNo % 2 == 0; //var to manage drawing/not drawing ship during invincibility
+
+    if(twoPlayer && livesP2>0 && blinkOn)
     {
         //move ship
         if (rightKeyP2){ //draw exhaust when moving forward
@@ -431,6 +452,18 @@ function drawPlayer2(){
         if ((phoenix.y + phoenix.height) >= canvas.height){phoenix.y = canvas.height - phoenix.height;}
         
         context.drawImage(phoenixImg,phoenix.x,phoenix.y);
+    }
+
+    if(phoenix.blinkNo>0)
+    {
+        //deincrement blink time
+        phoenix.blinkTime--;
+        //deincrement blink No
+        if(phoenix.blinkTime==0)
+        {
+            phoenix.blinkTime = Math.ceil(SHIP_BLINK_DUR * FPS);
+            phoenix.blinkNo--;
+        }
     }
 }
 function drawLaserPlayer1(){
@@ -617,7 +650,7 @@ function hitTestPlayer2()
 }
 function shipCollisionPlayer1()
 {
-    if(!INVINCIBLE && livesP1>0)
+    if(!INVINCIBLE && livesP1>0 && supernova.blinkNo==0)
     {
         for (var j = 0; j < enemy_1.enemies.length; j++) 
         {
@@ -642,7 +675,7 @@ function shipCollisionPlayer1()
 }
 function shipCollisionPlayer2()
 {
-    if(twoPlayer && !INVINCIBLE && livesP2>0)
+    if(twoPlayer && !INVINCIBLE && livesP2>0 && phoenix.blinkNo==0)
     {
         for (var j = 0; j < enemy_1.enemies.length; j++) 
         {
