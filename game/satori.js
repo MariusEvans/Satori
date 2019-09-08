@@ -1,7 +1,9 @@
 var canvas = document.getElementById("aCanvas");
 var context = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+//canvas.width = window.innerWidth;
+//canvas.height = window.innerHeight;
+canvas.width = 1280;
+canvas.height = 720;
 
 var Satori = new Satori();
 
@@ -25,8 +27,8 @@ const SHOT_SPEED = 30; //shot speed in pixels per second
 const MAX_SHOTS = 10;
 
 //ENEMIES
-MAX_ENEMIES = 6; //max starting enemies
-ENEMY_SPEED = 8; //enemy speed in pixels per second
+const MAX_ENEMIES = 6; //max starting enemies
+const ENEMY_SPEED = 8; //enemy speed in pixels per second
 
 //TEXT
 
@@ -36,6 +38,8 @@ var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootKeyP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootKeyP2;
 
 var showWorkings = -1; // just for testing, pressing forward slash during game shows various background data
+
+var enemyExplosions = [];
 
 //sound effects
 
@@ -98,6 +102,10 @@ function newGame()
     leftKeyP2 = false, rightKeyP2 = false, upKeyP2 = false, downKeyP2 = false, shootKeyP2 = false;
     scoreP1 = 0, scoreP2 = 0;
     explodingP1 = false;
+    
+    while (enemyExplosions.length > 0) {
+        enemyExplosions.pop();
+    }
 
     //make all new enemies
     for (var i = 0; i < MAX_ENEMIES; i++) 
@@ -197,6 +205,7 @@ function newExplosion(url1)
         url: url1,
         x: 0,
         y: 0,
+        displayCountdownP1: 0
     }
 }
 
@@ -211,14 +220,26 @@ function Satori()
         
         if(!gameOver)
         {
-            hitTestPlayer1(); //hit test with enemies for P1
+            if (explodingP1 == false) {
+                hitTestPlayer1(); //hit test with enemies for P1
+            }
+            
             hitTestPlayer2(); //hit test with enemies for P2
-            shipCollisionPlayer1(); //ship collision for P1
+            
+            if (explodingP1 == false) {
+                shipCollisionPlayer1(); //ship collision for P1
+            }
+            
             shipCollisionPlayer2(); //ship collision for P2
             drawLaserPlayer1(); //draw and move laser for P1
             drawLaserPlayer2(); //draw and move laser for P2
             drawEnemies(); //draw and move enemies
-            drawPlayer1(); //draw and move ship for P1
+            drawEnemyExplosions(); // draw the exploding enemies
+            
+            if (explodingP1 == false) {
+                drawPlayer1(); //draw and move ship for P1
+            }
+            
             drawPlayer2(); //draw and move ship for P2
             drawLives(); //draw lives, 1UP, Score, PRESS ENTER
             explodePlayer1(); //draw explosion for P1
@@ -256,7 +277,7 @@ function Satori()
                     console.log("Move right P1");
                     rightKeyP1 = true;
                 }
-                else if(event.keyCode == '32' && singleP1.lasers.length<=MAX_SHOTS) //shoot
+                else if(event.keyCode == '32' && singleP1.lasers.length<=MAX_SHOTS && explodingP1 == false) //shoot
                 {
                     console.log("Shoot P1");
                     fxShot.play();
@@ -396,7 +417,7 @@ function drawBackground() {
 function drawPlayer1(){
     var blinkOn = supernova.blinkNo % 2 == 0; //var to manage drawing/not drawing ship during invincibility
     
-    if(livesP1>0 && blinkOn){
+    if(livesP1>0){
         //move ship
         if (rightKeyP1){ //draw exhaust when moving forward
             fxThrust.play();
@@ -414,7 +435,9 @@ function drawPlayer1(){
         if (supernova.y <= 0){supernova.y = 0;}
         if ((supernova.y + supernova.height) >= canvas.height){supernova.y = canvas.height - supernova.height;}
         
-        context.drawImage(supernovaImg,supernova.x,supernova.y);
+        if (blinkOn) {
+            context.drawImage(supernovaImg,supernova.x,supernova.y);
+        }
     }
 
     if(supernova.blinkNo>0)
@@ -432,7 +455,7 @@ function drawPlayer1(){
 function drawPlayer2(){
     var blinkOn = phoenix.blinkNo % 2 == 0; //var to manage drawing/not drawing ship during invincibility
 
-    if(twoPlayer && livesP2>0 && blinkOn)
+    if(twoPlayer && livesP2>0)
     {
         //move ship
         if (rightKeyP2){ //draw exhaust when moving forward
@@ -451,7 +474,9 @@ function drawPlayer2(){
         if (phoenix.y <= 0){phoenix.y = 0;}
         if ((phoenix.y + phoenix.height) >= canvas.height){phoenix.y = canvas.height - phoenix.height;}
         
-        context.drawImage(phoenixImg,phoenix.x,phoenix.y);
+        if (blinkOn) {
+            context.drawImage(phoenixImg,phoenix.x,phoenix.y);
+        }
     }
 
     if(phoenix.blinkNo>0)
@@ -601,6 +626,22 @@ function drawEnemies()
         }
     } 
 }
+
+function drawEnemyExplosions()
+{
+    for (var i = 0; i < enemyExplosions.length; i++) {
+        enemyExplosions[i][2]--;
+        if (enemyExplosions[i][2] <= 0) {
+            enemyExplosions.splice(i, 1);
+            i--;
+            continue;
+        }
+        context.drawImage(explosion1Img,
+                          enemyExplosions[i][0] + ((Math.random() * 30) - 15),
+                          enemyExplosions[i][1] + ((Math.random() * 30) - 15));
+    }
+}
+
 function hitTestPlayer1()
 {
     if(livesP1>0){
@@ -612,6 +653,8 @@ function hitTestPlayer1()
                     enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
                     enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
                     (enemy_1.enemies[j][2] / 5) / 2) == true) {
+                    
+                    enemyExplosions.push([enemy_1.enemies[j][0] - 32, enemy_1.enemies[j][1] - 32, (SHIP_EXPLODE_DUR * FPS) / 2]);
                     
                     scoreP1 += 70;
                     fxHit.play();
@@ -637,6 +680,8 @@ function hitTestPlayer2()
                     enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
                     (enemy_1.enemies[j][2] / 5) / 2) == true) {
                     
+                    enemyExplosions.push([enemy_1.enemies[j][0] - 32, enemy_1.enemies[j][1] - 32, (SHIP_EXPLODE_DUR * FPS) / 2]);
+                    
                     scoreP2 += 70;
                     fxHit.play();
                     enemy_1.enemies.splice(j, 1);
@@ -660,11 +705,13 @@ function shipCollisionPlayer1()
                 supernova.y + (supernova.height / 2), supernova.width / 4,
                 enemy_1.enemies[j][0] + ((enemy_1.enemies[j][2] / 5) / 2),
                 enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
-                (enemy_1.enemies[j][2] / 5) / 2) == true) {
+                (enemy_1.enemies[j][2] / 5) / 2) == true && explodingP1 == false) {
 
+                fxExplode.play();
                 explodingP1 = true;
                 explosion1.x = supernova.x;
                 explosion1.y = supernova.y;
+                explosion1.displayCountdownP1 = (SHIP_EXPLODE_DUR * FPS);
 
                 livesP1--;
                 enemy_1.enemies.splice(j, 1);
@@ -722,15 +769,13 @@ function checkGameOver()
 }
 function explodePlayer1()
 {
-    if(explodingP1){
-
-        fxExplode.play();
-        for(var z = 0; z<Math.ceil(SHIP_EXPLODE_DUR+2 * FPS); z++)
-        {
-            context.drawImage(explosion1Img,explosion1.x,explosion1.y);
-        }
+    if (explodingP1 == false) return;
+    explosion1.displayCountdownP1--;
+    
+    context.drawImage(explosion1Img,explosion1.x + ((Math.random() * 30) - 15),explosion1.y + ((Math.random() * 30) - 15));
+    
+    if (explosion1.displayCountdownP1 <= 0) {
         explodingP1 = false;
-        
         supernova = newShip('../assets/spaceships/supernova/supernova.png',128,128);
     }
 }
