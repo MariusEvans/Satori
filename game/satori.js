@@ -64,7 +64,8 @@ var phoneix_exhaust = newExhaust("../assets/spaceships/phoenix/Exhaust/Normal_fl
 var enemy_1 = newEnemy("../assets/enemies/enemy-1.png",300,300);
 //sounds
 var fxShot = new Sound("../assets/sounds/laser.m4a",5,1);
-var fxExplode = new Sound("../assets/sounds/explode.m4a");
+var fxExplodeP1 = new Sound("../assets/sounds/explode.m4a");
+var fxExplodeP2 = new Sound("../assets/sounds/explode.m4a");
 var fxHit = new Sound("../assets/sounds/hit.m4a",5);
 var fxThrust = new Sound("../assets/sounds/thrust.m4a",1,0.5);
 var fxThrustP2 = new Sound("../assets/sounds/thrust.m4a",1,0.5);
@@ -427,7 +428,7 @@ function drawPlayer1(){
         if (supernova.x <= 0){supernova.x = 0;}
         if ((supernova.x + supernova.width) >= canvas.width){supernova.x = canvas.width - supernova.width;}
         if (supernova.y <= 0){supernova.y = 0;}
-        if ((supernova.y + supernova.height) >= canvas.height){supernova.y = canvas.height - supernova.height;}
+        if ((supernova.y + supernova.height + 100) >= canvas.height){supernova.y = canvas.height - supernova.height - 100;}
         
         if (blinkOn) {
             context.drawImage(supernovaImg,supernova.x,supernova.y);
@@ -466,7 +467,7 @@ function drawPlayer2(){
         if (phoenix.x <= 0){phoenix.x = 0;}
         if ((phoenix.x + phoenix.width) >= canvas.width){phoenix.x = canvas.width - phoenix.width;}
         if (phoenix.y <= 0){phoenix.y = 0;}
-        if ((phoenix.y + phoenix.height) >= canvas.height){phoenix.y = canvas.height - phoenix.height;}
+        if ((phoenix.y + phoenix.height + 100) >= canvas.height){phoenix.y = canvas.height - phoenix.height - 100;}
         
         if (blinkOn) {
             context.drawImage(phoenixImg,phoenix.x,phoenix.y);
@@ -701,7 +702,7 @@ function shipCollisionPlayer1()
                 enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
                 (enemy_1.enemies[j][2] / 5) / 2) == true && explodingP1 == false) {
 
-                fxExplode.play();
+                fxExplodeP1.play();
                 explodingP1 = true;
                 explosionP1.x = supernova.x;
                 explosionP1.y = supernova.y;
@@ -728,7 +729,7 @@ function shipCollisionPlayer2()
                 enemy_1.enemies[j][1] + ((enemy_1.enemies[j][3] / 5) / 2),
                 (enemy_1.enemies[j][2] / 5) / 2) == true) {
                 
-                fxExplode.play();
+                fxExplodeP2.play();
                 explodingP2 = true;
                 explosionP2.x = phoenix.x;
                 explosionP2.y = phoenix.y;
