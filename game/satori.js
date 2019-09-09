@@ -25,6 +25,7 @@ const SHIP_EXPLODE_DUR = 0.8; //time it takes for ship to explode
 //SHOTS
 const SHOT_SPEED = 30; //shot speed in pixels per second
 const MAX_SHOTS = 10;
+const SHOT_REPEAT_SPEED = 20;
 
 //ENEMIES
 const MAX_ENEMIES = 6; //max starting enemies
@@ -34,8 +35,8 @@ const ENEMY_SPEED = 8; //enemy speed in pixels per second
 
 //---------- GAME VARS
 var pause, time, livesP1, livesP2, scoreP1, scoreP2, explodingP1, explodingP2, twoPlayer;
-var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootKeyP1;
-var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootKeyP2;
+var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootingP1;
+var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootingP2;
 
 var showWorkings = -1; // just for testing, pressing forward slash during game shows various background data
 
@@ -103,8 +104,8 @@ function newGame()
     pause = false;
     twoPlayer = false;
     livesP1 = MAX_LIVES, livesP2 = 0; //make livesP2 = 0 until two player mode activated
-    leftKeyP1 = false, rightKeyP1 = false, upKeyP1 = false, downKeyP1 = false, shootKeyP1 = false;
-    leftKeyP2 = false, rightKeyP2 = false, upKeyP2 = false, downKeyP2 = false, shootKeyP2 = false;
+    leftKeyP1 = false, rightKeyP1 = false, upKeyP1 = false, downKeyP1 = false, shootingP1 = -1;
+    leftKeyP2 = false, rightKeyP2 = false, upKeyP2 = false, downKeyP2 = false, shootingP2 = -1;
     scoreP1 = 0, scoreP2 = 0;
     explodingP1 = false, explodingP2 = false;
     
@@ -225,6 +226,8 @@ function Satori()
         
         if(!gameOver)
         {
+            createLasersPlayer1(); //create lasers if firing
+            createLasersPlayer2(); //create lasers if firing
             hitTestPlayer1(); //hit test with enemies for P1
             hitTestPlayer2(); //hit test with enemies for P2
             shipCollisionPlayer1(); //ship collision for P1
@@ -272,12 +275,10 @@ function Satori()
                     console.log("Move right P1");
                     rightKeyP1 = true;
                 }
-                else if(event.keyCode == '32' && singleP1.lasers.length<=MAX_SHOTS && explodingP1 == false && livesP1>0) //shoot
+                else if(event.keyCode == '32' && shootingP1 == -1) //shoot
                 {
-                    console.log("Shoot P1");
-                    fxShot.play();
-                    singleP1.lasers.push([supernova.x + supernova.width - 45, supernova.y + (supernova.height/2)-2, singleP1.width, singleP1.height]);
-                    shootKeyP1 = true;
+                    shootingP1 = SHOT_REPEAT_SPEED - 1;
+                    console.log("Shoot P1 key pressed");
                 }
                 //----------- PLAYER 2
                 if(event.keyCode==87) //up
@@ -300,12 +301,10 @@ function Satori()
                     console.log("Move right P2");
                     rightKeyP2 = true;
                 }
-                else if(event.keyCode == '16' && singleP2.lasers.length<=MAX_SHOTS && explodingP2 == false && livesP2>0) //shoot
+                else if(event.keyCode == '16' && shootingP2 == -1) //shoot
                 {
-                    console.log("Shoot P2");
-                    fxShot.play();
-                    singleP2.lasers.push([phoenix.x + phoenix.width - 35, phoenix.y + (phoenix.height/2)+1, singleP2.width, singleP2.height]);
-                    shootKeyP2 = true;
+                    shootingP2 = SHOT_REPEAT_SPEED - 1;
+                    console.log("Shoot P2 key pressed");
                 }
 
                 //OVERALL CONTROLS
@@ -364,7 +363,8 @@ function Satori()
             }
             else if (event.keyCode == '32') //shooting
             {
-                console.log("Stop shooting");
+                shootingP1 = -1;
+                console.log("Shoot P1 key released");
             }
             //----------- PLAYER 2
             if(event.keyCode==87) //up
@@ -389,7 +389,8 @@ function Satori()
             }
             else if (event.keyCode == '16') //shooting
             {
-                console.log("Stop shooting P2");
+                shootingP2 = -1;
+                console.log("Shoot P2 key released");
             }
         }
         this.draw();
@@ -407,6 +408,30 @@ function drawBackground() {
     }
 
     starfield.x -= BACKGROUND_SPEED;
+}
+
+function createLasersPlayer1() {
+    if (shootingP1 == -1) return;
+    shootingP1++;
+    if (shootingP1 < SHOT_REPEAT_SPEED) return;
+    shootingP1 = 0;
+    
+    if (singleP1.lasers.length<=MAX_SHOTS && explodingP1 == false && livesP1>0) {
+        fxShot.play();
+        singleP1.lasers.push([supernova.x + supernova.width - 45, supernova.y + (supernova.height/2)-2, singleP1.width,   singleP1.height]);
+    }
+}
+
+function createLasersPlayer2() {
+    if (shootingP2 == -1) return;
+    shootingP2++;
+    if (shootingP2 < SHOT_REPEAT_SPEED) return;
+    shootingP2 = 0;
+    
+    if (singleP2.lasers.length<=MAX_SHOTS && explodingP2 == false && livesP2>0) {
+        fxShot.play();
+        singleP2.lasers.push([phoenix.x + phoenix.width - 35, phoenix.y + (phoenix.height/2)+1, singleP2.width, singleP2.height]);
+    }
 }
 
 function drawPlayer1(){
