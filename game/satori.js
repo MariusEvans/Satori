@@ -58,6 +58,7 @@ var total = ["supernova","phoenix"];
 //lasers
 var singleP1 = newLaser('../assets/lasers/single.png',5,5);
 var singleP2 = newLaser('../assets/lasers/single.png',5,5);
+var singleEnemy = newLaser('../assets/lasers/single.png',5,5);
 //exhausts
 var supernova_exhaust = newExhaust("../assets/spaceships/supernova/Exhaust/Normal_flight/Exhaust1/exhaust4.png");
 var phoneix_exhaust = newExhaust("../assets/spaceships/phoenix/Exhaust/Normal_flight/Exhaust1/exhaust4.png")
@@ -228,10 +229,11 @@ function Satori()
         {
             createLasersPlayer1(); //create lasers if firing
             createLasersPlayer2(); //create lasers if firing
-            hitTestPlayer1(); //hit test with enemies for P1
-            hitTestPlayer2(); //hit test with enemies for P2
+            hitTestPlayer1(); //laser hit test with enemies for P1
+            hitTestPlayer2(); //laser hit test with enemies for P2
             shipCollisionPlayer1(); //ship collision for P1
             shipCollisionPlayer2(); //ship collision for P2
+            drawLaserEnemy(); //draw and move lasers for enemies
             drawLaserPlayer1(); //draw and move laser for P1
             drawLaserPlayer2(); //draw and move laser for P2
             drawEnemies(); //draw and move enemies
@@ -574,6 +576,38 @@ function drawLaserPlayer2(){
             }
         } 
     }
+}
+function drawLaserEnemy(){
+    //create lasers
+    if(time%2==0 && enemy_1.enemies.length>0){
+        for(var i = 0; i<enemy_1.enemies.length; i++){
+            singleEnemy.lasers.push([enemy_1.enemies[i][0] + enemy_1.enemies[i][2]-300, enemy_1.enemies[i][1] + (enemy_1.enemies[i][3]/2)-120, singleEnemy.width, singleEnemy.height]);
+        }
+    }
+
+    //move laser
+    if(singleEnemy.lasers.length>0)
+    {
+        for (var i = 0; i < singleEnemy.lasers.length; i++) 
+        {
+            if(singleEnemy.lasers[i][0] > 0) {
+                singleEnemy.lasers[i][0] -= SHOT_SPEED;
+            } 
+            if(singleEnemy.lasers[i][0] <= 0) { //remove laser when hits edge of screen
+                singleEnemy.lasers.splice(i,1);
+                i--;
+            }
+        }
+    }
+
+    //draw laser
+    if(singleEnemy.lasers.length>0)
+    {
+        for (var i = 0; i < singleEnemy.lasers.length; i++) {
+            context.fillStyle = 'red';
+            context.fillRect(singleEnemy.lasers[i][0],singleEnemy.lasers[i][1],singleEnemy.lasers[i][2],singleEnemy.lasers[i][3]);
+        }
+    } 
 }
 function drawLives()
 {   
