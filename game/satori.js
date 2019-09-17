@@ -37,6 +37,16 @@ const ENEMY_SPEED = 8; //enemy speed in pixels per second
 var pause, time, livesP1, livesP2, scoreP1, scoreP2, explodingP1, explodingP2, twoPlayer;
 var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootingP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootingP2;
+var gamemode = 0; // 0 = title, 1 = game
+
+//---------- TITLE SCREEN VARS
+var titleLetters = ["S", "A", "T", "O", "R", "I"];
+var titleCounter = 0;
+var stars = [];
+var titleSpeed = 15;
+for (var i = 0; i < 100; i++) {
+    stars.push([Math.floor(Math.random() * 1280), Math.floor(Math.random() * 720) + 720, Math.floor(Math.random() * 4) + 1]);
+}
 
 var showWorkings = -1; // just for testing, pressing forward slash during game shows various background data
 
@@ -97,11 +107,11 @@ window.setInterval(function()
 
 window.onload = function() 
 {
-    newGame();
     setInterval(animate,1000/FPS); //create game loop
 };
 function newGame()
 {
+    gamemode = 1;
     time = 0;
     pause = false;
     twoPlayer = false;
@@ -114,13 +124,23 @@ function newGame()
     while (enemyExplosions.length > 0) {
         enemyExplosions.pop();
     }
+    
+    while (enemy_1.length > 0) {
+        enemy_1.pop();
+    }
+    enemy_1 = newEnemy('../assets/gfx/enemy1.png',65,65);
+    singleP1 = newLaser('../assets/gfx/laser.png',16,16);
+    singleP2 = newLaser('../assets/gfx/laser.png',16,16);
+    singleEnemy = newLaser('../assets/gfx/laser.png',16,16);
 
     //make all new enemies
     for (var i = 0; i < MAX_ENEMIES; i++) 
     {
         enemy_1.x = canvas.width+Math.floor(Math.random()*40);
-        enemy_1.enemies.push([enemy_1.x + (i * 150), Math.floor(Math.random()*(canvas.height-30)), enemy_1.width, enemy_1.height, ENEMY_SPEED]);
+        enemy_1.enemies.push([enemy_1.x + (i * 150), Math.floor(Math.random()*(canvas.height-120)), enemy_1.width, enemy_1.height, ENEMY_SPEED]);
     }
+    
+    supernova = newShip('../assets/gfx/player1.png', 65, 65);
 }
 function newLevel()
 {
@@ -226,7 +246,14 @@ function Satori()
         drawBackground(); //draw background - regardless of if lost game or not
         var gameOver = checkGameOver();
         
-        if(!gameOver)
+        if (gamemode == 1 && (gameOver || enemy_1.enemies.length == 0)) {
+            titleCounter = 0;
+            gamemode = 0;
+        }
+        
+        if (gamemode == 0) {
+            drawTitle();
+        } else if (!gameOver)
         {
             createLasersPlayer1(); //create lasers if firing
             createLasersPlayer2(); //create lasers if firing
@@ -258,6 +285,12 @@ function Satori()
             event = event || window.event;
             if(event.keyCode) 
             {
+                
+                if (gamemode == 0) {
+                    if (event.keyCode == '32' && titleCounter / titleSpeed > titleLetters.length) newGame();
+                    return;
+                }
+                
                 //----------- PLAYER 1
                 if(event.keyCode==38) //up
                 {
@@ -344,6 +377,7 @@ function Satori()
         };
         document.onkeyup = function(event)
         {
+            if (gamemode != 1) return;
             //----------- PLAYER 1
             if(event.keyCode==38 || event.keyCode==87) //up
             {
@@ -607,16 +641,19 @@ function drawLives()
     //1UP
     context.font = "25px Courier New";
     context.fillStyle = "white";
+    context.textAlign = "left"; 
     context.fillText("1UP",16,25);
     //SCORE
     context.font = "25px Courier New";
     context.fillStyle = "white";
+    context.textAlign = "left"; 
     context.fillText(scoreP1,100,25);
     //PRESS ENTER
     if(time%BLINK_TIME==0 && !twoPlayer) //BLINKING
     {
         context.font = "25px Courier New";
         context.fillStyle = "white";
+        context.textAlign = "left"; 
         context.fillText("PRESS ENTER",canvas.width-190,25);
     }
     //LIVES
@@ -633,10 +670,12 @@ function drawLives()
         //2UP
         context.font = "25px Courier New";
         context.fillStyle = "white";
+        context.textAlign = "left"; 
         context.fillText("2UP",canvas.width-65,25);
         //SCORE
         context.font = "25px Courier New";
         context.fillStyle = "white";
+        context.textAlign = "left"; 
         context.fillText(scoreP2,canvas.width-125,25);
         
         //LIVES
@@ -657,7 +696,7 @@ function drawEnemies()
                 enemy_1.enemies[i][0] -= ENEMY_SPEED;
             } else { //remove enemy when hits edge of screen
                 enemy_1.enemies[i][0] = canvas.width+Math.floor(Math.random()*40);
-                enemy_1.enemies[i][1] = Math.floor(Math.random()*(canvas.height-30));
+                enemy_1.enemies[i][1] = Math.floor(Math.random()*(canvas.height-120));
                 //enemy_1.enemies.splice(i,1);
             }
         }
@@ -908,6 +947,53 @@ function showDebug()
     context.stroke();
 }
 
+function drawTitle() {
+    if (titleCounter > 2000) titleCounter = 1000;
+    titleCounter++;
+    
+    context.fillStyle = "black";
+    context.fillRect(0, 0, 1280, 720);
+    
+    context.font = "50px monospace";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    
+    for (var i = 0; i < titleLetters.length; i++) {
+        if (titleCounter / titleSpeed > i) {
+            context.fillText(titleLetters[i], (640 + (i * 40)) - (((titleLetters.length - 1)* 40) / 2), 240);
+        }
+    }
+    
+    if (titleCounter / titleSpeed == titleLetters.length) fxExplodeP1.play();
+    if (titleCounter / titleSpeed > titleLetters.length) {
+        
+        for (var i = 0; i < stars.length; i++) {
+            stars[i][1] -= stars[i][2];
+            if (stars[i][1] < 0) stars[i][1] += 720;
+
+            context.fillStyle = "cyan";
+            if (stars[i][2] == 1) context.fillStyle = "blue";
+            if (stars[i][2] == 2) context.fillStyle = "gray";
+            if (stars[i][2] == 3) context.fillStyle = "green";
+            context.beginPath();
+            context.arc(stars[i][0], stars[i][1], 1, 0, 2*Math.PI);
+            context.fill();
+        }
+        
+        context.font = "25px monospace";
+        context.fillStyle = "red";
+        context.textAlign = "center";
+        context.fillText("A GAME BY MARIUS EVANS AND O. M. C.", 640, 360);
+        
+        context.fillStyle = "white";
+        context.textAlign = "center";
+        if (titleCounter % 80 > 20) {
+            context.fillText("PRESS SPACE TO START", 640, 480);
+        }
+    }
+    
+}
+
 function animate() 
 {
     if(!pause)
@@ -919,7 +1005,8 @@ function animate()
         //PAUSED TEXT
         context.font = "50px Courier New";
         context.fillStyle = "white";
-        context.fillText("PAUSED",canvas.width/2.25,canvas.height/2);
+        context.textAlign = "center";
+        context.fillText("PAUSED", 640, 300);
 
         //context.font = "30px Courier New";
         //context.fillText("PRESS P TO UNPAUSE",canvas.width/2.5 -5,canvas.height/2 + 40);
