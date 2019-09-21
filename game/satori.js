@@ -984,6 +984,13 @@ function drawTitle() {
         context.fillStyle = "red";
         context.textAlign = "center";
         context.fillText("A GAME BY MARIUS EVANS AND O. M. C.", 640, 360);
+
+        if(scoreP1>0 || scoreP2>0){
+            context.font = "30px monospace";
+            context.fillStyle = "white";
+            context.textAlign = "center";
+            context.fillText("1UP: "+scoreP1+"   |   2UP: "+scoreP2, 640, 300);
+        }
         
         context.fillStyle = "white";
         context.textAlign = "center";
