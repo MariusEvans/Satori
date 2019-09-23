@@ -73,7 +73,7 @@ var singleEnemy = newLaser('../assets/gfx/laser.png',16,16);
 var supernova_exhaust = newExhaust("../assets/gfx/thrust.png");
 var phoneix_exhaust = newExhaust("../assets/gfx/thrust.png");
 //enemies
-var enemy_1 = newEnemy('../assets/gfx/enemy1.png',65,65);
+var enemy_1 = newEnemy('../assets/gfx/fiend1.png',65,65);
 //sounds
 var fxShot = new Sound("../assets/sounds/laser.m4a",5,1);
 var fxExplodeP1 = new Sound("../assets/sounds/explode.m4a");
@@ -125,10 +125,11 @@ function newGame()
         enemyExplosions.pop();
     }
     
-    while (enemy_1.length > 0) {
-        enemy_1.pop();
+    while (enemy_1.enemies.length > 0) {
+        enemy_1.enemies.pop();
     }
-    enemy_1 = newEnemy('../assets/gfx/enemy1.png',65,65);
+    enemy_1 = newEnemy('../assets/gfx/fiend1.png',65,65);
+    
     singleP1 = newLaser('../assets/gfx/laser.png',16,16);
     singleP2 = newLaser('../assets/gfx/laser.png',16,16);
     singleEnemy = newLaser('../assets/gfx/laser.png',16,16);
@@ -137,7 +138,12 @@ function newGame()
     for (var i = 0; i < MAX_ENEMIES; i++) 
     {
         enemy_1.x = canvas.width+Math.floor(Math.random()*40);
-        enemy_1.enemies.push([enemy_1.x + (i * 150), Math.floor(Math.random()*(canvas.height-120)), enemy_1.width, enemy_1.height, ENEMY_SPEED]);
+        enemy_1.enemies.push([enemy_1.x + (i * 450),
+                              Math.floor(Math.random()*(canvas.height-120)),
+                              enemy_1.width,
+                              enemy_1.height,
+                              ENEMY_SPEED,
+                              1]);
     }
     
     supernova = newShip('../assets/gfx/player1.png', 65, 65);
@@ -454,7 +460,7 @@ function createLasersPlayer1() {
     
     if (singleP1.lasers.length<=MAX_SHOTS && explodingP1 == false && livesP1>0) {
         fxShot.play();
-        singleP1.lasers.push([supernova.x + 16, supernova.y + 45, singleP1.width, singleP1.height]);
+        singleP1.lasers.push([supernova.x + 16, supernova.y + 45, singleP1.width, singleP1.height, false, 0]);
     }
 }
 
@@ -466,7 +472,7 @@ function createLasersPlayer2() {
     
     if (singleP2.lasers.length<=MAX_SHOTS && explodingP2 == false && livesP2>0) {
         fxShot.play();
-        singleP2.lasers.push([phoenix.x + 16, phoenix.y + 45, singleP2.width, singleP2.height]);
+        singleP2.lasers.push([phoenix.x + 16, phoenix.y + 45, singleP2.width, singleP2.height, false, 0]);
     }
 }
 
@@ -609,7 +615,8 @@ function drawLaserEnemy(){
     //create lasers
     for(var i = 0; i<enemy_1.enemies.length; i++){
         if (Math.floor(Math.random() * 100) == 0 && enemy_1.enemies[i][0] < 1000) {
-            singleEnemy.lasers.push([enemy_1.enemies[i][0] + 32, enemy_1.enemies[i][1] + 32, 16, 16]);
+            singleEnemy.lasers.push([enemy_1.enemies[i][0] + 32, enemy_1.enemies[i][1] + 32, 16, 16, true, -8]);
+            singleEnemy.lasers.push([enemy_1.enemies[i][0] + 32, enemy_1.enemies[i][1] + 32, 16, 16, true, -8]);
         }
     }
 
@@ -619,9 +626,14 @@ function drawLaserEnemy(){
         for (var i = 0; i < singleEnemy.lasers.length; i++) 
         {
             if(singleEnemy.lasers[i][0] > 0) {
-                singleEnemy.lasers[i][0] -= SHOT_SPEED;
+                singleEnemy.lasers[i][0] -= (SHOT_SPEED / 2);
+                if (singleEnemy.lasers[i][4] == true) {
+                    singleEnemy.lasers[i][1] += singleEnemy.lasers[i][5];
+                    singleEnemy.lasers[i][5] += 0.5;
+                }
             } 
-            if(singleEnemy.lasers[i][0] <= 0) { //remove laser when hits edge of screen
+            if(singleEnemy.lasers[i][0] <= 0 ||
+               singleEnemy.lasers[i][1] >= 720) { //remove laser when hits edge of screen
                 singleEnemy.lasers.splice(i,1);
                 i--;
             }
@@ -692,12 +704,22 @@ function drawEnemies()
     {
         for (var i = 0; i < enemy_1.enemies.length; i++) 
         {
-            if(enemy_1.enemies[i][0] > (enemy_1.enemies[i][2]/5) * -1) {
+            if(enemy_1.enemies[i][0] > (enemy_1.width) * -1) {
                 enemy_1.enemies[i][0] -= ENEMY_SPEED;
+                
+                enemy_1.enemies[i][1] += (enemy_1.enemies[i][5] * (ENEMY_SPEED / 2));
+                if (enemy_1.enemies[i][1] < 0) {
+                    enemy_1.enemies[i][1] = 0;
+                    enemy_1.enemies[i][5] *= -1;
+                }
+                if (enemy_1.enemies[i][1] > 655) {
+                    enemy_1.enemies[i][1] = 655;
+                    enemy_1.enemies[i][5] *= -1;
+                }
+                
             } else { //remove enemy when hits edge of screen
-                enemy_1.enemies[i][0] = canvas.width+Math.floor(Math.random()*40);
+                enemy_1.enemies[i][0] = canvas.width + 130;
                 enemy_1.enemies[i][1] = Math.floor(Math.random()*(canvas.height-120));
-                //enemy_1.enemies.splice(i,1);
             }
         }
     }
