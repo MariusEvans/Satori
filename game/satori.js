@@ -13,7 +13,7 @@ const FPS = 60;
 const BLINK_TIME = 3; //blink every x seconds
 const BACKGROUND_SPEED = 3; //speed of background in pixels per second
 const DEBUG_MODE = true; //when debug mode enabled - now you can press / to turn debug mode on or off
-const INVINCIBLE = false; //loses no lives on ship collisions if true
+const INVINCIBLE = true; //loses no lives on ship collisions if true
 
 //SHIP
 const MAX_LIVES = 3;
@@ -80,6 +80,9 @@ var fxExplodeP2 = new Sound("../assets/sounds/explode.m4a");
 var fxHit = new Sound("../assets/sounds/hit.m4a",5);
 var fxThrust = new Sound("../assets/sounds/thrust.m4a",1,0.5);
 var fxThrustP2 = new Sound("../assets/sounds/thrust.m4a",1,0.5);
+var fxCoin = new Sound("../assets/sounds/coin.wav",1,1);
+var fxDetonation = new Sound("../assets/sounds/detonation.wav",1,1);
+var fxLaserBeam = new Sound("../assets/sounds/laserbeam.wav",1,1);
 //explosions
 var explosionP1 = newExplosion("../assets/gfx/explosion.png");
 var explosionP2 = newExplosion("../assets/gfx/explosion.png");
@@ -319,7 +322,7 @@ function Satori()
             {
                 
                 if (gamemode == 0) {
-                    if (event.keyCode == '32' && titleCounter / titleSpeed > titleLetters.length) newGame();
+                    if (event.keyCode == '32' && titleCounter / titleSpeed > titleLetters.length) fxCoin.play(); newGame();
                     return;
                 }
                 
@@ -392,6 +395,7 @@ function Satori()
                     if(twoPlayer==false)
                     {
                         console.log("New player.");
+                        fxCoin.play();
                         twoPlayer=true;
                         livesP2 = MAX_LIVES;
                         phoenix = newShip('../assets/gfx/player2.png', 65, 65);
@@ -726,6 +730,8 @@ function hitTestPlayer2()
         {
             for (var j = 0; j < nme.length; j++)
             {
+                if (nme[j][8] != 0) continue;
+                if (nme[j][2] > currentStage) break;
                 if (circlesCollide(singleP2.lasers[i][0] + 8, singleP2.lasers[i][1] + 8, 8,
                     nme[j][0] + 32,
                     nme[j][1] + 32,
@@ -1030,6 +1036,9 @@ function showDebug()
 }
 
 function drawTitle() {
+    fxExplodeP1.stop();
+    fxExplodeP2.stop();
+
     if (titleCounter > 2000) titleCounter = 1000;
     titleCounter++;
     
@@ -1072,6 +1081,20 @@ function drawTitle() {
             context.fillStyle = "white";
             context.textAlign = "center";
             context.fillText("1UP: "+scoreP1+"   |   2UP: "+scoreP2, 640, 300);
+        }
+
+        if(currentStage>3){
+            if (titleCounter % 80 > 20 && currentStage) {
+            context.font = "50px monospace";
+            context.fillStyle = "green";
+            context.textAlign = "center";
+            context.fillText("YOU BEAT",640,150);}
+            else{
+                context.font = "50px monospace";
+            context.fillStyle = "blue";
+            context.textAlign = "center";
+            context.fillText("YOU BEAT",640,150);
+            }
         }
         
         context.fillStyle = "white";
@@ -1228,6 +1251,7 @@ function drawNmesWeapons() {
             }
             if (nme[i][6] > 100) {
                 context.drawImage(detonation_img, + ((Math.random() * 20) - 10) + (nme[i][4] - 128), + ((Math.random() * 20) - 10) + (nme[i][5] - 128));
+                fxDetonation.play();
             }
         }
 
