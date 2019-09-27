@@ -32,6 +32,8 @@ const MAX_ENEMIES = 6; //max starting enemies
 const ENEMY_SPEED = 8; //enemy speed in pixels per second
 var farX = 1920;
 var nme = [];
+var spikes = [0, 0, 0, 0, 0, 0];
+var spikeX;
 
 //TEXT
 
@@ -41,6 +43,7 @@ var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootingP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootingP2;
 var gamemode = 0; // 0 = title, 1 = game
 var currentStage;
+var silentMode = -1;
 
 //---------- TITLE SCREEN VARS
 var titleLetters = ["S", "A", "T", "O", "R", "I"];
@@ -101,6 +104,7 @@ var nme2_img = new Image(); nme2_img.src = '../assets/gfx/fiend2.png';
 var nme3_img = new Image(); nme3_img.src = '../assets/gfx/fiend3.png';
 var bomb_img = new Image(); bomb_img.src = '../assets/gfx/bomb.png';
 var detonation_img = new Image(); detonation_img.src = '../assets/gfx/detonation.png';
+var spikes_img = new Image(); spikes_img.src = '../assets/gfx/spikes.png';
 
 var explosionP1Img = new Image(); explosionP1Img.src = explosionP1.url;
 var explosionP2Img = new Image(); explosionP2Img.src = explosionP2.url;
@@ -129,6 +133,9 @@ function newGame()
     scoreP1 = 0, scoreP2 = 0;
     explodingP1 = false, explodingP2 = false;
     
+    spikes = [1, 1, 1, 0, 1, 1];
+    spikeX = 3000;
+    
     while (nme.length > 0) {
         nme.pop();
     }
@@ -138,9 +145,9 @@ function newGame()
         [farX * 1.25, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
         [farX * 1.5, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
         
-        [farX, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), 0, 0, 0],
-        [farX * 1.25, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), 0, 0, 0],
-        [farX * 1.5, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), 0, 0, 0],
+        [farX, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
+        [farX * 1.25, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
+        [farX * 1.5, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
         
         [farX * 1.5, 328, 2, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, -1],
         [farX * 1.5, 328, 2, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, 1],
@@ -186,6 +193,7 @@ function Sound(src, maxStreams = 1, vol = 1.0)
     }
     this.play = function()
     {
+        if (silentMode == 1) return;
         this.streamNo = (this.streamNo+1) % maxStreams;
         this.streams[this.streamNo].play();
     }
@@ -263,6 +271,24 @@ function newExplosion(url1)
     }
 }
 
+function moveSpikes() {
+    spikeX -= 8;
+    if (spikeX < -150) {
+        spikes = [1, 1, 1, 1, 1, 1];
+        spikes[Math.floor(Math.random() * 6)] = 0;
+        spikeX = 3000;
+    }
+}
+
+function drawSpikes() {
+    if (spikeX > 1300) return;
+    for (var i = 0; i < 6; i++) {
+        if (spikes[i] == 1) {
+            context.drawImage(spikes_img, spikeX, i * 120);
+        }
+    }
+}
+
 function Satori()
 {
     this.draw = function() //DRAW AND MOVE
@@ -297,9 +323,11 @@ function Satori()
             drawPlayer1(); //draw and move ship for P1
             drawPlayer2(); //draw and move ship for P2
             
+            moveSpikes();
             moveNmesWeapons();
             moveNmes();
             
+            drawSpikes()
             drawNmesWeapons();
             drawNmes();
             
@@ -320,9 +348,11 @@ function Satori()
             event = event || window.event;
             if(event.keyCode) 
             {
-                
+                if (event.keyCode == '190') silentMode *= -1;
                 if (gamemode == 0) {
-                    if (event.keyCode == '32' && titleCounter / titleSpeed > titleLetters.length) fxCoin.play(); newGame();
+                    if (event.keyCode == '32' && titleCounter / titleSpeed > titleLetters.length) {
+                        fxCoin.play(); newGame();
+                    }
                     return;
                 }
                 
@@ -521,10 +551,14 @@ function drawPlayer1(){
         
         if (rightKeyP1==false){fxThrust.stop();}
         //handle edge of screen
-        if (supernova.x <= 0){supernova.x = 0;}
-        if ((supernova.x + supernova.width) >= canvas.width){supernova.x = canvas.width - supernova.width;}
-        if (supernova.y <= 0){supernova.y = 0;}
-        if ((supernova.y + supernova.height + 100) >= canvas.height){supernova.y = canvas.height - supernova.height - 100;}
+        //if (supernova.x <= 0){supernova.x = 0;}
+        //if ((supernova.x + supernova.width) >= canvas.width){supernova.x = canvas.width - supernova.width;}
+        //if (supernova.y <= 0){supernova.y = 0;}
+        //if ((supernova.y + supernova.height + 100) >= canvas.height){supernova.y = canvas.height - supernova.height - 100;}
+        if (supernova.x < 0) supernova.x = 0;
+        if (supernova.x > 1215) supernova.x = 1215;
+        if (supernova.y < 0) supernova.y = 0;
+        if (supernova.y > 655) supernova.y = 655;
         
         if (blinkOn) {
             if (rightKeyP1) {
@@ -562,10 +596,15 @@ function drawPlayer2(){
         
         if (rightKeyP2==false){fxThrustP2.stop();}
         //handle edge of screen
-        if (phoenix.x <= 0){phoenix.x = 0;}
-        if ((phoenix.x + phoenix.width) >= canvas.width){phoenix.x = canvas.width - phoenix.width;}
-        if (phoenix.y <= 0){phoenix.y = 0;}
-        if ((phoenix.y + phoenix.height + 100) >= canvas.height){phoenix.y = canvas.height - phoenix.height - 100;}
+        //if (phoenix.x <= 0){phoenix.x = 0;}
+        //if ((phoenix.x + phoenix.width) >= canvas.width){phoenix.x = canvas.width - phoenix.width;}
+        //if (phoenix.y <= 0){phoenix.y = 0;}
+        //if ((phoenix.y + phoenix.height + 100) >= canvas.height){phoenix.y = canvas.height - phoenix.height - 100;}
+        
+        if (phoenix.x < 0) phoenix.x = 0;
+        if (phoenix.x > 1215) phoenix.x = 1215;
+        if (phoenix.y < 0) phoenix.y = 0;
+        if (phoenix.y > 655) phoenix.y = 655;
         
         if (blinkOn) {
             if (rightKeyP2) {
@@ -770,8 +809,24 @@ function shipCollisionPlayer1()
             }
         }
         
+        // spike walls
+        for (var j = 0; j < 6; j++) {
+            if (spikes[j] == 0) continue;
+            if (circlesCollide(supernova.x + 32, supernova.y + 32, 32,
+                               spikeX + 60, (j * 120) + 60, 60) == true
+                 && explodingP1 == false) {
+                fxExplodeP1.play();
+                explodingP1 = true;
+                explosionP1.x = supernova.x;
+                explosionP1.y = supernova.y;
+                explosionP1.displayCountdown = (SHIP_EXPLODE_DUR * FPS);
+
+                livesP1--;
+            }
+        }
+        
         // enemy type 0, thrown laser
-        for (var j = 0; j < nme.length; j++) {            
+        for (var j = 0; j < nme.length; j++) {
             if (nme[j][2] > currentStage) break;
             if (nme[j][3] != 0) continue;
             if (nme[j][6] != 1) continue;
@@ -791,17 +846,22 @@ function shipCollisionPlayer1()
             }
         }
         
-        // enemy type 1, vertical laser
+        // enemy type 1, cross laser
         for (var j = 0; j < nme.length; j++) {            
             if (nme[j][2] > currentStage) break;
             if (nme[j][3] != 1) continue;
             if (nme[j][6] != 1) continue;
             if (nme[j][8] != 0) continue;
             
-            if (circlesCollide(supernova.x + 32, 100, 32,
+            if ((circlesCollide(supernova.x + 32, 100, 32,
                 nme[j][0] + 32,
                 100,
-                8) == true && explodingP1 == false) {
+                8) == true ||
+                circlesCollide(100, supernova.y + 32, 32,
+                100,
+                nme[j][1] + 32,
+                8) == true)
+                && explodingP1 == false) {
 
                 fxExplodeP1.play();
                 explodingP1 = true;
@@ -864,6 +924,22 @@ function shipCollisionPlayer2()
             }
         }
         
+        // spike walls
+        for (var j = 0; j < 6; j++) {
+            if (spikes[j] == 0) continue;
+            if (circlesCollide(phoenix.x + 32, phoenix.y + 32, 32,
+                               spikeX + 60, (j * 120) + 60, 60) == true
+                 && explodingP2 == false) {
+                fxExplodeP2.play();
+                explodingP2 = true;
+                explosionP2.x = phoenix.x;
+                explosionP2.y = phoenix.y;
+                explosionP2.displayCountdown = (SHIP_EXPLODE_DUR * FPS);
+
+                livesP2--;
+            }
+        }
+        
         // enemy type 0, thrown laser
         for (var j = 0; j < nme.length; j++) {            
             if (nme[j][2] > currentStage) break;
@@ -885,17 +961,22 @@ function shipCollisionPlayer2()
             }
         }
         
-        // enemy type 1, vertical laser
+        // enemy type 1, cross laser
         for (var j = 0; j < nme.length; j++) {            
             if (nme[j][2] > currentStage) break;
             if (nme[j][3] != 1) continue;
             if (nme[j][6] != 1) continue;
             if (nme[j][8] != 0) continue;
             
-            if (circlesCollide(phoenix.x + 32, 100, 32,
+            if ((circlesCollide(phoenix.x + 32, 100, 32,
                 nme[j][0] + 32,
                 100,
-                8) == true && explodingP2 == false) {
+                8) == true ||
+                circlesCollide(100, phoenix.y + 32, 32,
+                100,
+                nme[j][1] + 32,
+                8) == true)
+                && explodingP2 == false) {
 
                 fxExplodeP2.play();
                 explodingP2 = true;
@@ -1179,13 +1260,20 @@ function moveNmes() {
         }
         
         if (nme[i][3] == 1) {
-            nme[i][0] -= 5;
-            if (nme[i][0] < -65) {
-                nme[i][0] += farX;
-                nme[i][1] = Math.floor(Math.random() * 655);
-            }
+            nme[i][0] += (nme[i][10] * 5);
+            nme[i][1] += (nme[i][11] * 5);
+            
+            if (nme[i][0] < 800) nme[i][12] = 1;
+            if (nme[i][0] < 0) nme[i][10] = 1;
+            if (nme[i][0] > 1215) nme[i][10] = -1;
+            
+            if (nme[i][1] < 0) nme[i][11] = 1;
+            if (nme[i][1] > 655) nme[i][11] = -1;
+                
             nme[i][9]++;
             if (nme[i][9] >= 160) nme[i][9] = 0;
+            
+            if (nme[i][12] == 0) nme[i][9] = 200;
             
             nme[i][6] = 0;
             if (nme[i][9] > 20 && nme[i][9] < 50) nme[i][6] = 1;
@@ -1270,12 +1358,22 @@ function drawNmes() {
                     context.fillRect(nme[i][0] + 30 + ((Math.random() * 20) - 10), nme[i][1] - 10, 4, 85);
                     context.fillStyle = "red";
                     context.fillRect(nme[i][0] + 30 + ((Math.random() * 20) - 10), nme[i][1] - 10, 4, 85);
+                    
+                    context.fillStyle = "cyan";
+                    context.fillRect(nme[i][0] - 10, nme[i][1] + 30 + ((Math.random() * 20) - 10), 85, 4);
+                    context.fillStyle = "red";
+                    context.fillRect(nme[i][0] - 10, nme[i][1] + 30 + ((Math.random() * 20) - 10), 85, 4);
                 }
                 if (nme[i][9] > 20 && nme[i][9] < 50) {
                     context.fillStyle = "cyan";
                     context.fillRect(nme[i][0] + 30 + ((Math.random() * 20) - 10), 0, 4, 720);
                     context.fillStyle = "red";
                     context.fillRect(nme[i][0] + 30 + ((Math.random() * 20) - 10), 0, 4, 720);
+                    
+                    context.fillStyle = "cyan";
+                    context.fillRect(0, nme[i][1] + 30 + ((Math.random() * 20) - 10), 1280, 4);
+                    context.fillStyle = "red";
+                    context.fillRect(0, nme[i][1] + 30 + ((Math.random() * 20) - 10), 1280, 4);
                 }
                 context.drawImage(nme2_img, nme[i][0], nme[i][1], 65, 65);
             }
