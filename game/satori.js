@@ -42,7 +42,7 @@ var pause, time, livesP1, livesP2, scoreP1, scoreP2, explodingP1, explodingP2, t
 var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootingP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootingP2;
 var gamemode = 0; // 0 = title, 1 = game
-var currentStage;
+var currentStage, lastStage;
 var silentMode = -1;
 
 //---------- TITLE SCREEN VARS
@@ -132,6 +132,7 @@ function newGame()
     leftKeyP2 = false, rightKeyP2 = false, upKeyP2 = false, downKeyP2 = false, shootingP2 = -1;
     scoreP1 = 0, scoreP2 = 0;
     explodingP1 = false, explodingP2 = false;
+    lastStage = 5;
     
     spikes = [1, 1, 1, 0, 1, 1];
     spikeX = 3000;
@@ -141,20 +142,47 @@ function newGame()
     }
     
     nme = [
-        [farX, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
+        /*[farX, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
         [farX * 1.25, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
+        [farX * 1.5, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],*/
+
+        //STAGE 1
+        [farX, 10, 0, 1, -1, -1, 0, 0, -1, 1, 0, 0, 0],
+        [farX, 720, 0, 1, -1, -1, 0, 0, -1, 1, 0, 0, 0],
+        [farX-50, 20, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
         [farX * 1.5, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
+        [farX * 2.0, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
         
+        //STAGE 2
         [farX, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
         [farX * 1.25, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
         [farX * 1.5, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
+        [farX * 2.3, Math.floor(Math.random() * 655), 1, 0, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
+        [farX * 2.5, Math.floor(Math.random() * 655), 1, 0, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
+        [farX * 2.7, Math.floor(Math.random() * 655), 1, 0, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
+        [farX * 2.9, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
         
+        //STAGE 3
         [farX * 1.5, 328, 2, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, -1],
         [farX * 1.5, 328, 2, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, 1],
+        [farX * 2.2, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
+        [farX * 2.4, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
+        [farX * 2.6, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
+        [farX * 2.8, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
+        [farX * 2.8, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
+        [farX * 2.8, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
+        [farX * 2.9, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
         
+        
+        //STAGE 4
         [farX, Math.random() * 655, 3, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
         [farX * 1.25, Math.floor(Math.random() * 655), 3, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), 0, 0, 0],
         [farX * 1.5, 328, 3, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, 1]
+
+        //STAGE 5
+        [farX, Math.random() * 655, 4, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
+        [farX * 1.25, Math.floor(Math.random() * 655), 4, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), 0, 0, 0],
+        [farX * 1.5, 328, 4, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, 1]
         
     /*
         0. enemy x
@@ -298,7 +326,7 @@ function Satori()
         drawBackground(); //draw background - regardless of if lost game or not
         var gameOver = checkGameOver();
         
-        if (gamemode == 1 && (gameOver || currentStage > 3)) {
+        if (gamemode == 1 && (gameOver || currentStage > lastStage-1)) {
             titleCounter = 0;
             gamemode = 0;
         }
@@ -687,7 +715,7 @@ function drawLives()
     context.font = "25px Courier New";
     context.fillStyle = "white";
     context.textAlign = "center"; 
-    context.fillText("WAVE " + (currentStage + 1), 640, 25);
+    context.fillText("WAVE " + (currentStage + 1)+" OF "+lastStage, 640, 25);
     //1UP
     context.font = "25px Courier New";
     context.fillStyle = "white";
@@ -710,7 +738,7 @@ function drawLives()
     shipImg.src = supernova.url;
     for(var i = 0; i<livesP1; i++)
     {
-        context.drawImage(shipImg, 20 + (40 * i), 40, supernova.width/2, supernova.height/2);
+        context.drawImage(shipImg, 20 + (35 * i), 30, supernova.width/2, supernova.height/2);
     }
 
     //PLAYER 2
@@ -731,7 +759,7 @@ function drawLives()
         //LIVES
         for(var i = 0; i<livesP2; i++)
         {
-            context.drawImage(shipImg, (40 * i) + 1140,40,phoenix.width/2,phoenix.height/2);
+            context.drawImage(shipImg, (35 * i) + 1150,30,phoenix.width/2,phoenix.height/2);
         }
     }
 }
