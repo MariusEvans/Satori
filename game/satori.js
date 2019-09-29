@@ -24,7 +24,7 @@ const SHIP_EXPLODE_DUR = 0.8; //time it takes for ship to explode
 
 //SHOTS
 const SHOT_SPEED = 30; //shot speed in pixels per second
-const MAX_SHOTS = 10;
+const MAX_SHOTS = 2;
 const SHOT_REPEAT_SPEED = 20;
 
 //ENEMIES
@@ -42,7 +42,18 @@ var pause, time, livesP1, livesP2, scoreP1, scoreP2, explodingP1, explodingP2, t
 var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootingP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootingP2;
 var gamemode = 0; // 0 = title, 1 = game
-var currentStage, lastStage;
+var currentStage;
+
+var enemiesByStage = [
+ 3, 2, 2,
+ 4, 4, 4,
+ 5, 5, 5,
+ 6, 6, 6,
+ 7, 7, 7
+];
+
+var lastStage = enemiesByStage.length;
+
 var silentMode = -1;
 
 //---------- TITLE SCREEN VARS
@@ -132,7 +143,6 @@ function newGame()
     leftKeyP2 = false, rightKeyP2 = false, upKeyP2 = false, downKeyP2 = false, shootingP2 = -1;
     scoreP1 = 0, scoreP2 = 0;
     explodingP1 = false, explodingP2 = false;
-    lastStage = 5;
     
     spikes = [1, 1, 1, 0, 1, 1];
     spikeX = 3000;
@@ -141,48 +151,28 @@ function newGame()
         nme.pop();
     }
     
-    nme = [
-        /*[farX, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        [farX * 1.25, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        [farX * 1.5, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],*/
-
-        //STAGE 1
-        [farX, 10, 0, 1, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        [farX, 720, 0, 1, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        [farX-50, 20, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        [farX * 1.5, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        [farX * 2.0, Math.random() * 655, 0, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        
-        //STAGE 2
-        [farX, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
-        [farX * 1.25, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
-        [farX * 1.5, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
-        [farX * 2.3, Math.floor(Math.random() * 655), 1, 0, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
-        [farX * 2.5, Math.floor(Math.random() * 655), 1, 0, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
-        [farX * 2.7, Math.floor(Math.random() * 655), 1, 0, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
-        [farX * 2.9, Math.floor(Math.random() * 655), 1, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0],
-        
-        //STAGE 3
-        [farX * 1.5, 328, 2, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, -1],
-        [farX * 1.5, 328, 2, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, 1],
-        [farX * 2.2, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
-        [farX * 2.4, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
-        [farX * 2.6, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
-        [farX * 2.8, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
-        [farX * 2.8, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
-        [farX * 2.8, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
-        [farX * 2.9, Math.floor(Math.random() * 655), 2, 0, -1, -1, 0, 0, -1, 1500, Math.random() * 100, -1, 1],
-        
-        
-        //STAGE 4
-        [farX, Math.random() * 655, 3, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        [farX * 1.25, Math.floor(Math.random() * 655), 3, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), 0, 0, 0],
-        [farX * 1.5, 328, 3, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, 1]
-
-        //STAGE 5
-        [farX, Math.random() * 655, 4, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0],
-        [farX * 1.25, Math.floor(Math.random() * 655), 4, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), 0, 0, 0],
-        [farX * 1.5, 328, 4, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, 1]
+    for (var i = 0; i < enemiesByStage.length; i++) {
+        for (var j = 0; j < enemiesByStage[i]; j++) {
+            var k = Math.floor(Math.random() * 3);
+            if (i < 3) k = -1
+            if (i == 0 || k == 0) {
+                nme.push([farX + (j * 450), Math.random() * 655, i, 0, -1, -1, 0, 0, -1, 1, 0, 0, 0]);
+                continue;
+            }
+            if (i == 1 || k == 1) {
+                nme.push([farX + (j * 450), Math.floor(Math.random() * 655), i, 1, -1, -1, 0, 0, -1, Math.floor(Math.random() * 100), -1, 1, 0]);
+                continue;
+            }
+            if (i == 2 || k == 2) {
+                if (j % 2 == 0) {
+                    nme.push([farX, 328, i, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, -1]);
+                } else {
+                    nme.push([farX, 328, i, 2, -1, -1, 0, 0, -1, 1500, Math.random() * 655, -1, 1]);
+                }
+                continue;
+            }
+        }
+    }
         
     /*
         0. enemy x
@@ -199,8 +189,6 @@ function newGame()
         11. misc enemy var 3
         12. misc enemy var 4
     */
-        
-    ];
     
     currentStage = 0;
     
@@ -546,7 +534,7 @@ function createLasersPlayer1() {
     if (shootingP1 < SHOT_REPEAT_SPEED) return;
     shootingP1 = 0;
     
-    if (singleP1.lasers.length<=MAX_SHOTS && explodingP1 == false && livesP1>0) {
+    if (singleP1.lasers.length<MAX_SHOTS && explodingP1 == false && livesP1>0) {
         fxShot.play();
         singleP1.lasers.push([supernova.x + 16, supernova.y + 45, singleP1.width, singleP1.height, false, 0]);
     }
@@ -558,7 +546,7 @@ function createLasersPlayer2() {
     if (shootingP2 < SHOT_REPEAT_SPEED) return;
     shootingP2 = 0;
     
-    if (singleP2.lasers.length<=MAX_SHOTS && explodingP2 == false && livesP2>0) {
+    if (singleP2.lasers.length<MAX_SHOTS && explodingP2 == false && livesP2>0) {
         fxShot.play();
         singleP2.lasers.push([phoenix.x + 16, phoenix.y + 45, singleP2.width, singleP2.height, false, 0]);
     }
@@ -715,7 +703,7 @@ function drawLives()
     context.font = "25px Courier New";
     context.fillStyle = "white";
     context.textAlign = "center"; 
-    context.fillText("WAVE " + (currentStage + 1)+" OF "+lastStage, 640, 25);
+    context.fillText("WAVE " + (currentStage + 1) + " OF " + lastStage, 640, 25);
     //1UP
     context.font = "25px Courier New";
     context.fillStyle = "white";
@@ -1047,6 +1035,10 @@ function shipCollisionPlayer2()
 }
 function checkGameOver()
 {
+    
+    if (explosionP1.displayCountdown > 0) return false;
+    if (explosionP2.displayCountdown > 0) return false;
+    
     var gameOver;
     if(twoPlayer)
     {
@@ -1192,12 +1184,12 @@ function drawTitle() {
             context.fillText("1UP: "+scoreP1+"   |   2UP: "+scoreP2, 640, 300);
         }
 
-        if(currentStage>3){
-            if (titleCounter % 80 > 20 && currentStage) {
-            context.font = "50px monospace";
-            context.fillStyle = "green";
-            context.textAlign = "center";
-            context.fillText("YOU BEAT",640,150);}
+        if(currentStage == lastStage){
+            if (titleCounter % 80 > 20) {
+                context.font = "50px monospace";
+                context.fillStyle = "green";
+                context.textAlign = "center";
+                context.fillText("YOU BEAT",640,150);}
             else{
                 context.font = "50px monospace";
             context.fillStyle = "blue";
@@ -1208,6 +1200,7 @@ function drawTitle() {
         
         context.fillStyle = "white";
         context.textAlign = "center";
+        context.font = "25px monospace";
         if (titleCounter % 80 > 20) {
             context.fillText("PRESS SPACE TO START", 640, 480);
         }
