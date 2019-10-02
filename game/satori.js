@@ -30,6 +30,9 @@ const SHOT_REPEAT_SPEED = 20;
 //ENEMIES
 const MAX_ENEMIES = 6; //max starting enemies
 const ENEMY_SPEED = 8; //enemy speed in pixels per second
+const SCORE_ENEMY_1 = 50; //score for killing enemy type 1
+const SCORE_ENEMY_2 = 60; //score for killing enemy type 2
+const SCORE_ENEMY_3 = 70; //score for killing enemy type 3
 var farX = 1920;
 var nme = [];
 var spikes = [0, 0, 0, 0, 0, 0];
@@ -766,7 +769,15 @@ function hitTestPlayer1()
                     nme[j][1] + 32,
                     32) == true) {
                     
-                    scoreP1 += 70;
+                    //increase score for killing enemy depending on enemy type
+                    if(nme[j][3]==0){ //enemy type 1
+                        scoreP1 += SCORE_ENEMY_1;
+                    } else if(nme[j][3]==1){ //enemy type 2
+                        scoreP1 += SCORE_ENEMY_2;
+                    } else if(nme[j][3]==2){ //enemy type 3
+                        scoreP1 += SCORE_ENEMY_3;
+                    }
+    
                     fxHit.play();
                     nme[j][8] = 1;
                     singleP1.lasers.splice(i, 1);
@@ -792,7 +803,15 @@ function hitTestPlayer2()
                     nme[j][1] + 32,
                     32) == true) {
                     
-                    scoreP2 += 70;
+                    //increase score for killing enemy depending on enemy type
+                    if(nme[j][3]==0){ //enemy type 1
+                        scoreP2 += SCORE_ENEMY_1;
+                    } else if(nme[j][3]==1){ //enemy type 2
+                        scoreP2 += SCORE_ENEMY_2;
+                    } else if(nme[j][3]==2){ //enemy type 3
+                        scoreP2 += SCORE_ENEMY_3;
+                    }
+
                     fxHit.play();
                     nme[j][8] = 1;
                     singleP2.lasers.splice(i, 1);
@@ -1425,7 +1444,9 @@ function animate()
         context.textAlign = "center";
         context.fillText("PAUSED", 640, 300);
 
-        //context.font = "30px Courier New";
-        //context.fillText("PRESS P TO UNPAUSE",canvas.width/2.5 -5,canvas.height/2 + 40);
+        context.font = "30px Courier New";
+        context.fillStyle = "white";
+        context.textAlign = "center";
+        context.fillText("PRESS P TO UNPAUSE",630,330);
     }
 }
