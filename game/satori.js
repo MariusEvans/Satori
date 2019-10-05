@@ -46,6 +46,7 @@ var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootingP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootingP2;
 var gamemode = 0; // 0 = title, 1 = game
 var currentStage;
+var bestStage = -1;
 
 var enemiesByStage = [
  3, 2, 2,
@@ -60,12 +61,20 @@ var lastStage = enemiesByStage.length;
 var silentMode = -1;
 
 //---------- TITLE SCREEN VARS
-var titleLetters = ["S", "A", "T", "O", "R", "I"];
+var titleText = [
+    " ....  ...  .....  ...  ....  .....",
+    ".     .   .   .   .   . .   .   .  ",
+    " ...  .....   .   .   . ....    .  ",
+    "    . .   .   .   .   . .  .    .  ",
+    "....  .   .   .    ...  .   . ....."
+];
 var titleCounter = 0;
 var stars = [];
-var titleSpeed = 15;
-for (var i = 0; i < 100; i++) {
-    stars.push([Math.floor(Math.random() * 1280), Math.floor(Math.random() * 720) + 720, Math.floor(Math.random() * 4) + 1]);
+for (var i = 0; i < 300; i++) {
+    stars.push([640,
+                360,
+                (Math.floor(Math.random() * 1280) - 640) / 25,
+                (Math.floor(Math.random() * 720) - 360) / 25]);
 }
 
 var showWorkings = -1; // just for testing, pressing forward slash during game shows various background data
@@ -142,11 +151,11 @@ function newGame()
     pause = false;
     timeBonusFlag = false;
     twoPlayer = false;
-    livesP1 = MAX_LIVES, livesP2 = 0; //make livesP2 = 0 until two player mode activated
-    leftKeyP1 = false, rightKeyP1 = false, upKeyP1 = false, downKeyP1 = false, shootingP1 = -1;
-    leftKeyP2 = false, rightKeyP2 = false, upKeyP2 = false, downKeyP2 = false, shootingP2 = -1;
-    scoreP1 = 0, scoreP2 = 0;
-    explodingP1 = false, explodingP2 = false;
+    livesP1 = MAX_LIVES; livesP2 = 0; //make livesP2 = 0 until two player mode activated
+    leftKeyP1 = false; rightKeyP1 = false; upKeyP1 = false; downKeyP1 = false; shootingP1 = -1;
+    leftKeyP2 = false; rightKeyP2 = false; upKeyP2 = false; downKeyP2 = false; shootingP2 = -1;
+    scoreP1 = 0; scoreP2 = 0;
+    explodingP1 = false; explodingP2 = false;
     
     spikes = [1, 1, 1, 0, 1, 1];
     spikeX = 3000;
@@ -195,6 +204,7 @@ function newGame()
     */
     
     currentStage = 0;
+    bestStage = currentStage;
     
     singleP1 = newLaser('../assets/gfx/laser.png',16,16);
     singleP2 = newLaser('../assets/gfx/laser.png',16,16);
@@ -370,8 +380,9 @@ function Satori()
             {
                 if (event.keyCode == '190') silentMode *= -1;
                 if (gamemode == 0) {
-                    if (event.keyCode == '32' && titleCounter / titleSpeed > titleLetters.length) {
-                        fxCoin.play(); newGame();
+                    if (event.keyCode == '32' && titleCounter > 50) {
+                        fxCoin.play();
+                        newGame();
                     }
                     return;
                 }
@@ -739,7 +750,7 @@ function drawLives()
     }
     //LIVES
     shipImg.src = supernova.url;
-    for(var i = 0; i<livesP1; i++)
+    for(var i = 1; i<livesP1; i++)
     {
         context.drawImage(shipImg, 20 + (35 * i), 30, supernova.width/2, supernova.height/2);
     }
@@ -760,7 +771,7 @@ function drawLives()
         context.fillText(scoreP2,canvas.width-125,25);
         
         //LIVES
-        for(var i = 0; i<livesP2; i++)
+        for(var i = 1; i<livesP2; i++)
         {
             context.drawImage(shipImg, (35 * i) + 1150,30,phoenix.width/2,phoenix.height/2);
         }
@@ -1170,60 +1181,101 @@ function showDebug()
 function drawTitle() {
     fxExplodeP1.stop();
     fxExplodeP2.stop();
+    
+    if (currentStage > bestStage && bestStage > -1) {
+        bestStage = currentStage;
+    }
 
-    if (titleCounter > 2000) titleCounter = 1000;
     titleCounter++;
+    if (titleCounter > 800) titleCounter = 100;
+	context.fillStyle = "black";
+	context.fillRect(0, 0, 1280, 720);
+    
+    for (var i = 0; i < stars.length; i++) {
+        var ii = 2;
+        var ix = stars[i][0];
+        var iy = stars[i][1];
+        
+        if (stars[i][0] < 320 || stars[i][0] > 960 || stars[i][1] < 180 || stars[i][1] > 540) ii = 3;
+        if (stars[i][0] < 160 || stars[i][0] > 1120 || stars[i][1] < 90 || stars[i][1] > 630) ii = 4;
+        
+        //context.fillStyle = "white";
+        //context.beginPath();
+        //context.arc(stars[i][0], stars[i][1], ii, 0, 2*Math.PI);
+        //context.fill();
+        
+        stars[i][0] += stars[i][2];
+        stars[i][1] += stars[i][3];
+        
+        if (stars[i][0] < 0 || stars[i][0] > 1280 || stars[i][1] < 0 || stars[i][1] > 720) {
+            stars[i][0] = 640;
+            stars[i][1] = 360;
+            stars[i][2] = (Math.floor(Math.random() * 1280) - 640) / 60;
+            stars[i][3] = (Math.floor(Math.random() * 720) - 360) / 60;
+        } else {
+            context.strokeStyle = "white";
+            if (i % 3 == 1) context.strokeStyle = "cyan";
+            if (i % 3 == 2) context.strokeStyle = "magenta";
+            if (i == 50) context.strokeStyle = "red";
+            if (i == 60) context.strokeStyle = "yellow";
+            context.lineWidth = ii;
+            context.beginPath();
+            context.moveTo(ix, iy);
+            context.lineTo(stars[i][0], stars[i][1]);
+            context.stroke();
+        }
+        
+    }
     
     context.fillStyle = "black";
-    context.fillRect(0, 0, 1280, 720);
+    context.beginPath();
+    context.arc(640, 360, 15, 0, 2*Math.PI);
+    context.fill();
     
-    context.font = "50px monospace";
-    context.fillStyle = "white";
-    context.textAlign = "center";
+    for (var i = 0; i < 8; i++) {
+        context.fillStyle = "rgba(0, 0, 0, 0.3)";
+        context.beginPath();
+        context.arc(640, 360, (i + 1) * 30, 0, 2*Math.PI);
+        context.fill();
+    }
     
-    for (var i = 0; i < titleLetters.length; i++) {
-        if (titleCounter / titleSpeed > i) {
-            context.fillText(titleLetters[i], (640 + (i * 40)) - (((titleLetters.length - 1)* 40) / 2), 240);
+    for (var i = 0; i < titleText.length; i++) {
+        for (var ii = 0; ii < titleText[i].length; ii++) {
+            if (titleCounter < 20) continue;
+            if (titleCounter < 30 && Math.random() > 0.4) continue;
+            if (titleCounter < 50 && Math.random() > 0.6) continue;
+            context.fillStyle = "white";
+            if (titleText[i].charAt(ii) == ".") {
+                context.fillRect(323 + (ii * (640 / titleText[i].length)), (i * 50) + 50, (640 / titleText[i].length) - 6, 44);
+            }
         }
     }
     
-    if (titleCounter / titleSpeed == titleLetters.length) fxExplodeP1.play();
-    if (titleCounter / titleSpeed > titleLetters.length) {
+    /* if (titleCounter > 50) {
+        context.strokeStyle = "white";
+        context.lineWidth = 4;
+        context.strokeRect(300, 30, 680, 290);
+    } */
+    
+    context.font = "25px monospace";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    
+    if (currentStage == lastStage) bestStage = 99;
+    
+    if (bestStage == 99) {
+        context.fillText("GAME STATUS: ALL WAVES DEFEATED", 640, 360 + 90);
+    } else if (bestStage > -1) {
+        context.fillText("HIGHEST WAVE REACHED: " + (bestStage + 1), 640, 360 + 90);
+    }
+    
+    if (titleCounter > 50) {
+        context.fillText("A GAME BY MARIUS EVANS AND O. M. C.", 640, 360 + 180 + 90);
         
-        drawStars();
-        
-        context.font = "25px monospace";
-        context.fillStyle = "red";
-        context.textAlign = "center";
-        context.fillText("A GAME BY MARIUS EVANS AND O. M. C.", 640, 360);
-
-        if(scoreP1>0 || scoreP2>0){
-            context.font = "30px monospace";
-            context.fillStyle = "white";
-            context.textAlign = "center";
-            context.fillText("1UP: "+scoreP1+"   |   2UP: "+scoreP2, 640, 300);
-        }
-
-        if(currentStage == lastStage){
-            if (titleCounter % 80 > 20) {
-                context.font = "50px monospace";
-                context.fillStyle = "green";
-                context.textAlign = "center";
-                context.fillText("YOU BEAT",640,150);}
-            else{
-                context.font = "50px monospace";
-            context.fillStyle = "blue";
-            context.textAlign = "center";
-            context.fillText("YOU BEAT",640,150);
-            }
+        if ((titleCounter + 50) % 80 < 60) {
+            context.fillText("PRESS SPACE TO START", 640, 360 + 180);
         }
         
-        context.fillStyle = "white";
-        context.textAlign = "center";
-        context.font = "25px monospace";
-        if (titleCounter % 80 > 20) {
-            context.fillText("PRESS SPACE TO START", 640, 480);
-        }
     }
     
 }
@@ -1406,6 +1458,11 @@ function drawNmes() {
                     context.fillRect(nme[i][0] - 10, nme[i][1] + 30 + ((Math.random() * 20) - 10), 85, 4);
                 }
                 if (nme[i][9] > 20 && nme[i][9] < 50) {
+                    
+                    if (nme[i][9] == 21) {
+                        fxLaserBeam.play();
+                    }
+                    
                     context.fillStyle = "cyan";
                     context.fillRect(nme[i][0] + 30 + ((Math.random() * 20) - 10), 0, 4, 720);
                     context.fillStyle = "red";
@@ -1428,21 +1485,6 @@ function drawNmes() {
                               nme[i][1] + ((Math.random() * 20) - 10));
             }
         }
-    }
-}
-
-function drawStars(){
-    for (var i = 0; i < stars.length; i++) {
-        stars[i][1] -= stars[i][2];
-        if (stars[i][1] < 0) stars[i][1] += 720;
-
-        context.fillStyle = "cyan";
-        if (stars[i][2] == 1) context.fillStyle = "blue";
-        if (stars[i][2] == 2) context.fillStyle = "gray";
-        if (stars[i][2] == 3) context.fillStyle = "green";
-        context.beginPath();
-        context.arc(stars[i][0], stars[i][1], 1, 0, 2*Math.PI);
-        context.fill();
     }
 }
 
