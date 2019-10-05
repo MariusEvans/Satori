@@ -13,7 +13,7 @@ const FPS = 60;
 const BLINK_TIME = 3; //blink every x seconds
 const BACKGROUND_SPEED = 3; //speed of background in pixels per second
 const DEBUG_MODE = true; //when debug mode enabled - now you can press / to turn debug mode on or off
-const INVINCIBLE = true; //loses no lives on ship collisions if true
+const INVINCIBLE = false; //loses no lives on ship collisions if true
 
 //SHIP
 const MAX_LIVES = 3;
