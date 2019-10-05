@@ -204,11 +204,11 @@ function newGame()
     */
     
     currentStage = 0;
-    bestStage = currentStage;
+    if (bestStage == -1) bestStage = 0;
     
     singleP1 = newLaser('../assets/gfx/laser.png',16,16);
     singleP2 = newLaser('../assets/gfx/laser.png',16,16);
-    
+
     supernova = newShip('../assets/gfx/player1.png', 65, 65);
 }
 
