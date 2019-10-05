@@ -13,7 +13,7 @@ const FPS = 60;
 const BLINK_TIME = 3; //blink every x seconds
 const BACKGROUND_SPEED = 3; //speed of background in pixels per second
 const DEBUG_MODE = true; //when debug mode enabled - now you can press / to turn debug mode on or off
-const INVINCIBLE = false; //loses no lives on ship collisions if true
+const INVINCIBLE = true; //loses no lives on ship collisions if true
 
 //SHIP
 const MAX_LIVES = 3;
@@ -41,7 +41,7 @@ var spikeX;
 //TEXT
 
 //---------- GAME VARS
-var pause, time, livesP1, livesP2, scoreP1, scoreP2, explodingP1, explodingP2, twoPlayer;
+var pause, time, timeBonusFlag, livesP1, livesP2, scoreP1, scoreP2, explodingP1, explodingP2, twoPlayer;
 var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootingP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootingP2;
 var gamemode = 0; // 0 = title, 1 = game
@@ -140,6 +140,7 @@ function newGame()
     gamemode = 1;
     time = 0;
     pause = false;
+    timeBonusFlag = false;
     twoPlayer = false;
     livesP1 = MAX_LIVES, livesP2 = 0; //make livesP2 = 0 until two player mode activated
     leftKeyP1 = false, rightKeyP1 = false, upKeyP1 = false, downKeyP1 = false, shootingP1 = -1;
@@ -702,6 +703,17 @@ function drawLaserPlayer2(){
 
 function drawLives()
 {   
+    if(currentStage==6 && time<=40 && time%2==0){
+        context.font = "25px Courier New";
+        context.fillStyle = "white";
+        context.textAlign = "left"; 
+        context.fillText("Time Bonus",550,45);
+        if(timeBonusFlag==false){
+            scoreP1+=250;
+            if(twoPlayer){scoreP2+=250;}
+            timeBonusFlag=true;
+        }
+    }
     //STAGE
     context.font = "25px Courier New";
     context.fillStyle = "white";
@@ -1178,18 +1190,7 @@ function drawTitle() {
     if (titleCounter / titleSpeed == titleLetters.length) fxExplodeP1.play();
     if (titleCounter / titleSpeed > titleLetters.length) {
         
-        for (var i = 0; i < stars.length; i++) {
-            stars[i][1] -= stars[i][2];
-            if (stars[i][1] < 0) stars[i][1] += 720;
-
-            context.fillStyle = "cyan";
-            if (stars[i][2] == 1) context.fillStyle = "blue";
-            if (stars[i][2] == 2) context.fillStyle = "gray";
-            if (stars[i][2] == 3) context.fillStyle = "green";
-            context.beginPath();
-            context.arc(stars[i][0], stars[i][1], 1, 0, 2*Math.PI);
-            context.fill();
-        }
+        drawStars();
         
         context.font = "25px monospace";
         context.fillStyle = "red";
@@ -1430,6 +1431,21 @@ function drawNmes() {
     }
 }
 
+function drawStars(){
+    for (var i = 0; i < stars.length; i++) {
+        stars[i][1] -= stars[i][2];
+        if (stars[i][1] < 0) stars[i][1] += 720;
+
+        context.fillStyle = "cyan";
+        if (stars[i][2] == 1) context.fillStyle = "blue";
+        if (stars[i][2] == 2) context.fillStyle = "gray";
+        if (stars[i][2] == 3) context.fillStyle = "green";
+        context.beginPath();
+        context.arc(stars[i][0], stars[i][1], 1, 0, 2*Math.PI);
+        context.fill();
+    }
+}
+
 function animate() 
 {
     if(!pause)
@@ -1438,15 +1454,20 @@ function animate()
     }
     else
     {
+        context.fillStyle = "black";
+        context.fillRect(0,0,canvas.width,canvas.height);
+        
         //PAUSED TEXT
-        context.font = "50px Courier New";
+        context.font = "50px Trebuchet MS";
         context.fillStyle = "white";
         context.textAlign = "center";
         context.fillText("PAUSED", 640, 300);
 
-        context.font = "30px Courier New";
+        context.font = "30px Trebuchet MS";
         context.fillStyle = "white";
         context.textAlign = "center";
         context.fillText("PRESS P TO UNPAUSE",630,330);
+
+        drawStars();
     }
 }
