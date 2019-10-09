@@ -44,6 +44,7 @@ var spikeX;
 var pause, time, timeBonusFlag, livesP1, livesP2, scoreP1, scoreP2, explodingP1, explodingP2, twoPlayer;
 var leftKeyP1, rightKeyP1, upKeyP1, downKeyP1, shootingP1;
 var leftKeyP2, rightKeyP2, upKeyP2, downKeyP2, shootingP2;
+var accuracyP1, accuracyP2, shotsHitP1, shotsTakenP1, shotsHitP2, shotsTakenP2;
 var gamemode = 0; // 0 = title, 1 = game
 var currentStage;
 var bestStage = -1;
@@ -155,6 +156,7 @@ function newGame()
     leftKeyP1 = false; rightKeyP1 = false; upKeyP1 = false; downKeyP1 = false; shootingP1 = -1;
     leftKeyP2 = false; rightKeyP2 = false; upKeyP2 = false; downKeyP2 = false; shootingP2 = -1;
     scoreP1 = 0; scoreP2 = 0;
+    accuracyP1 = 0; accuracyP2 = 0; shotsHitP1 = 0; shotsTakenP1 = 0; shotsHitP2 = 0; shotsTakenP2 = 0;
     explodingP1 = false; explodingP2 = false;
     
     spikes = [1, 1, 1, 0, 1, 1];
@@ -411,6 +413,7 @@ function Satori()
                 else if(event.keyCode == '32' && shootingP1 == -1) //shoot
                 {
                     shootingP1 = SHOT_REPEAT_SPEED - 1;
+                    shotsTakenP1++;
                     console.log("Shoot P1 key pressed");
                 }
                 //----------- PLAYER 2
@@ -437,6 +440,7 @@ function Satori()
                 else if(event.keyCode == '16' && shootingP2 == -1) //shoot
                 {
                     shootingP2 = SHOT_REPEAT_SPEED - 1;
+                    shotsTakenP2++;
                     console.log("Shoot P2 key pressed");
                 }
 
@@ -750,7 +754,7 @@ function drawLives()
     }
     //LIVES
     shipImg.src = supernova.url;
-    for(var i = 1; i<livesP1; i++)
+    for(var i = 0; i<livesP1; i++)
     {
         context.drawImage(shipImg, 20 + (35 * i), 30, supernova.width/2, supernova.height/2);
     }
@@ -771,7 +775,7 @@ function drawLives()
         context.fillText(scoreP2,canvas.width-125,25);
         
         //LIVES
-        for(var i = 1; i<livesP2; i++)
+        for(var i = 0; i<livesP2; i++)
         {
             context.drawImage(shipImg, (35 * i) + 1150,30,phoenix.width/2,phoenix.height/2);
         }
@@ -801,6 +805,7 @@ function hitTestPlayer1()
                         scoreP1 += SCORE_ENEMY_3;
                     }
     
+                    shotsHitP1++;
                     fxHit.play();
                     nme[j][8] = 1;
                     singleP1.lasers.splice(i, 1);
@@ -835,6 +840,7 @@ function hitTestPlayer2()
                         scoreP2 += SCORE_ENEMY_3;
                     }
 
+                    shotsHitP2++;
                     fxHit.play();
                     nme[j][8] = 1;
                     singleP2.lasers.splice(i, 1);
@@ -1191,41 +1197,7 @@ function drawTitle() {
 	context.fillStyle = "black";
 	context.fillRect(0, 0, 1280, 720);
     
-    for (var i = 0; i < stars.length; i++) {
-        var ii = 2;
-        var ix = stars[i][0];
-        var iy = stars[i][1];
-        
-        if (stars[i][0] < 320 || stars[i][0] > 960 || stars[i][1] < 180 || stars[i][1] > 540) ii = 3;
-        if (stars[i][0] < 160 || stars[i][0] > 1120 || stars[i][1] < 90 || stars[i][1] > 630) ii = 4;
-        
-        //context.fillStyle = "white";
-        //context.beginPath();
-        //context.arc(stars[i][0], stars[i][1], ii, 0, 2*Math.PI);
-        //context.fill();
-        
-        stars[i][0] += stars[i][2];
-        stars[i][1] += stars[i][3];
-        
-        if (stars[i][0] < 0 || stars[i][0] > 1280 || stars[i][1] < 0 || stars[i][1] > 720) {
-            stars[i][0] = 640;
-            stars[i][1] = 360;
-            stars[i][2] = (Math.floor(Math.random() * 1280) - 640) / 60;
-            stars[i][3] = (Math.floor(Math.random() * 720) - 360) / 60;
-        } else {
-            context.strokeStyle = "white";
-            if (i % 3 == 1) context.strokeStyle = "cyan";
-            if (i % 3 == 2) context.strokeStyle = "magenta";
-            if (i == 50) context.strokeStyle = "red";
-            if (i == 60) context.strokeStyle = "yellow";
-            context.lineWidth = ii;
-            context.beginPath();
-            context.moveTo(ix, iy);
-            context.lineTo(stars[i][0], stars[i][1]);
-            context.stroke();
-        }
-        
-    }
+    drawStars("normal");
     
     context.fillStyle = "black";
     context.beginPath();
@@ -1266,12 +1238,23 @@ function drawTitle() {
     if (bestStage == 99) {
         context.fillText("GAME STATUS: ALL WAVES DEFEATED", 640, 360 + 90);
     } else if (bestStage > -1) {
-        context.fillText("HIGHEST WAVE REACHED: " + (bestStage + 1), 640, 360 + 90);
+        context.fillText("HIGHEST WAVE REACHED: " + (bestStage + 1), 640, 310 + 90);
     }
     
     if (titleCounter > 50) {
         context.fillText("A GAME BY MARIUS EVANS AND O. M. C.", 640, 360 + 180 + 90);
-        
+
+        if(scoreP1>0 || scoreP2>0){
+            accuracyP1 = Math.ceil(((shotsHitP1)/shotsTakenP1)*100);
+            accuracyP2 = Math.ceil(((shotsHitP2)/shotsTakenP2)*100);
+
+            if(isNaN(accuracyP1)){accuracyP1=0} //don't show NaN in accuracy text
+            if(isNaN(accuracyP2)){accuracyP2=0;} //don't show NaN in accuracy text
+
+            context.fillText("1UP Score: "+scoreP1+"       2UP Score: "+scoreP2, 640, 440);
+            context.fillText("1UP Accuracy: "+accuracyP1+"%       2UP Accuracy: "+accuracyP2+"%", 640, 470);
+        }
+
         if ((titleCounter + 50) % 80 < 60) {
             context.fillText("PRESS SPACE TO START", 640, 360 + 180);
         }
@@ -1510,6 +1493,53 @@ function animate()
         context.textAlign = "center";
         context.fillText("PRESS P TO UNPAUSE",630,330);
 
-        drawStars();
+        if(scoreP1>0 || scoreP2>0){
+            accuracyP1 = Math.ceil(((shotsHitP1)/shotsTakenP1)*100);
+            accuracyP2 = Math.ceil(((shotsHitP2)/shotsTakenP2)*100);
+
+            if(isNaN(accuracyP1)){accuracyP1=0} //don't show NaN in accuracy text
+            if(isNaN(accuracyP2)){accuracyP2=0;} //don't show NaN in accuracy text
+
+            context.fillText("1UP Score: "+scoreP1+"       2UP Score: "+scoreP2, 630, canvas.height-70);
+            context.fillText("1UP Accuracy: "+accuracyP1+"%       2UP Accuracy: "+accuracyP2+"%", 630, canvas.height-30);
+        }
+
+        drawStars("slow");
+    }
+}
+
+function drawStars(mode){
+    var incrementBy;
+    if(mode=="normal"){incrementBy=1;} //normal speed of stars
+    if(mode=="slow"){incrementBy=2;} //slow speed of stars
+
+    for (var i = 0; i < stars.length; i+=incrementBy) {
+        var ii = 2;
+        var ix = stars[i][0];
+        var iy = stars[i][1];
+
+        if (stars[i][0] < 320 || stars[i][0] > 960 || stars[i][1] < 180 || stars[i][1] > 540) ii = 3;
+        if (stars[i][0] < 160 || stars[i][0] > 1120 || stars[i][1] < 90 || stars[i][1] > 630) ii = 4;
+
+        stars[i][0] += stars[i][2];
+        stars[i][1] += stars[i][3];
+
+        if (stars[i][0] < 0 || stars[i][0] > 1280 || stars[i][1] < 0 || stars[i][1] > 720) {
+            stars[i][0] = 640;
+            stars[i][1] = 360;
+            stars[i][2] = (Math.floor(Math.random() * 1280) - 640) / 60;
+            stars[i][3] = (Math.floor(Math.random() * 720) - 360) / 60;
+        } else {
+            context.strokeStyle = "white";
+            if (i % 3 == 1) context.strokeStyle = "cyan";
+            if (i % 3 == 2) context.strokeStyle = "magenta";
+            if (i == 50) context.strokeStyle = "red";
+            if (i == 60) context.strokeStyle = "yellow";
+            context.lineWidth = ii;
+            context.beginPath();
+            context.moveTo(ix, iy);
+            context.lineTo(stars[i][0], stars[i][1]);
+            context.stroke();
+        }
     }
 }
