@@ -380,6 +380,13 @@ function Satori()
             event = event || window.event;
             if(event.keyCode) 
             {
+                
+                if (event.keyCode == 38) event.preventDefault(); // up
+                if (event.keyCode == 40) event.preventDefault(); // down
+                if (event.keyCode == 37) event.preventDefault(); // left
+                if (event.keyCode == 39) event.preventDefault(); // right
+                if (event.keyCode == 32) event.preventDefault(); // space
+                
                 if (event.keyCode == '190') silentMode *= -1;
                 if (gamemode == 0) {
                     if (event.keyCode == '32' && titleCounter > 50) {
