@@ -385,7 +385,7 @@ function Satori()
                 if (event.keyCode == 40) event.preventDefault(); // down
                 if (event.keyCode == 37) event.preventDefault(); // left
                 if (event.keyCode == 39) event.preventDefault(); // right
-                if (event.keyCode == 32) event.preventDefault(); // space
+                if (event.keyCode == 13) event.preventDefault(); // enter
                 
                 if (event.keyCode == '190') silentMode *= -1;
                 if (gamemode == 0) {
@@ -417,7 +417,7 @@ function Satori()
                     console.log("Move right P1");
                     rightKeyP1 = true;
                 }
-                else if(event.keyCode == '32' && shootingP1 == -1) //shoot
+                else if(event.keyCode == '13' && shootingP1 == -1) //shoot
                 {
                     shootingP1 = SHOT_REPEAT_SPEED - 1;
                     shotsTakenP1++;
@@ -462,7 +462,7 @@ function Satori()
                         pause=false;
                     }
                 }
-                else if(event.keyCode == 13) //ENTER - new player
+                else if(event.keyCode == 32) //SPACE - new player
                 {
                     if(twoPlayer==false)
                     {
@@ -507,7 +507,7 @@ function Satori()
                 console.log("Stop right");
                 rightKeyP1 = false;
             }
-            else if (event.keyCode == '32') //shooting
+            else if (event.keyCode == '13') //shooting
             {
                 shootingP1 = -1;
                 console.log("Shoot P1 key released");
@@ -757,7 +757,7 @@ function drawLives()
         context.font = "25px Courier New";
         context.fillStyle = "white";
         context.textAlign = "left"; 
-        context.fillText("PRESS ENTER",canvas.width-190,25);
+        context.fillText("PRESS SPACE",canvas.width-190,25);
     }
     //LIVES
     shipImg.src = supernova.url;
