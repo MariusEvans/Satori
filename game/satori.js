@@ -61,6 +61,32 @@ var lastStage = enemiesByStage.length;
 
 var silentMode = -1;
 
+//---------- SPACE BACKGROUND VARS
+var mountain = [];
+var mountainStars = [];
+var mountainScroll = [0, 0, 0];
+var stageFade = 0;
+    
+for (var i = 0; i < 100; i++) {
+    mountainStars.push([Math.random() * 1280, Math.random() * 720]);
+}
+    
+for (var i = 0; i < 32; i++) {
+    if (i % 2 == 0) {
+        mountain.push((Math.random() * 100) + 570);
+    } else {
+        mountain.push((Math.random() * 100) + 600);
+    }
+}
+    
+for (var i = 0; i < 32; i++) {
+    mountain.push(mountain[i]);
+}
+    
+for (var i = 0; i < 5; i++) {
+    mountain.push(mountain[i]);
+}
+
 //---------- TITLE SCREEN VARS
 var titleText = [
     " ....  ...  .....  ...  ....  .....",
@@ -543,15 +569,59 @@ function Satori()
     }
 }
 function drawBackground() {
-    context.drawImage(starfieldImg,starfield.x,starfield.y,canvas.width,canvas.height);
-    context.drawImage(starfieldImg,starfield.x + canvas.width,starfield.y,canvas.width,canvas.height);
+    if (currentStage == 2) stageFade = 0;
+    if (currentStage < 4) {
+        context.drawImage(starfieldImg,starfield.x,starfield.y,canvas.width,canvas.height);
+        context.drawImage(starfieldImg,starfield.x + canvas.width,starfield.y,canvas.width,canvas.height);
 
-    if(starfield.x <= (canvas.width * -1)) {
-        starfield.x += canvas.width;
-        //console.log("reset x");
+        if(starfield.x <= (canvas.width * -1)) {
+            starfield.x += canvas.width;
+            //console.log("reset x");
+        }
+
+        starfield.x -= BACKGROUND_SPEED;
+    } else {
+        drawSpace();
     }
-
-    starfield.x -= BACKGROUND_SPEED;
+    
+    if (currentStage == 3) {
+        stageFade += 0.5;
+        if (stageFade > 100) stageFade = 100;
+        
+        context.fillStyle = "rgba(0, 0, 0, 0.1)";
+        if (stageFade > 10) context.fillStyle = "rgba(0, 0, 0, 0.2)";
+        if (stageFade > 20) context.fillStyle = "rgba(0, 0, 0, 0.3)";
+        if (stageFade > 30) context.fillStyle = "rgba(0, 0, 0, 0.4)";
+        if (stageFade > 40) context.fillStyle = "rgba(0, 0, 0, 0.5)";
+        if (stageFade > 50) context.fillStyle = "rgba(0, 0, 0, 0.6)";
+        if (stageFade > 60) context.fillStyle = "rgba(0, 0, 0, 0.7)";
+        if (stageFade > 70) context.fillStyle = "rgba(0, 0, 0, 0.8)";
+        if (stageFade > 80) context.fillStyle = "rgba(0, 0, 0, 0.9)";
+        if (stageFade > 90) context.fillStyle = "black";
+        
+        context.fillRect(0, 0, 1280, 720);
+        
+    }
+    
+    if (currentStage == 4) {
+        stageFade -= 0.5;
+        if (stageFade < 0) stageFade = 0;
+        
+        context.fillStyle = "rgba(0, 0, 0, 0.1)";
+        if (stageFade > 10) context.fillStyle = "rgba(0, 0, 0, 0.2)";
+        if (stageFade > 20) context.fillStyle = "rgba(0, 0, 0, 0.3)";
+        if (stageFade > 30) context.fillStyle = "rgba(0, 0, 0, 0.4)";
+        if (stageFade > 40) context.fillStyle = "rgba(0, 0, 0, 0.5)";
+        if (stageFade > 50) context.fillStyle = "rgba(0, 0, 0, 0.6)";
+        if (stageFade > 60) context.fillStyle = "rgba(0, 0, 0, 0.7)";
+        if (stageFade > 70) context.fillStyle = "rgba(0, 0, 0, 0.8)";
+        if (stageFade > 80) context.fillStyle = "rgba(0, 0, 0, 0.9)";
+        if (stageFade > 90) context.fillStyle = "black";
+        
+        if (stageFade > 0) context.fillRect(0, 0, 1280, 720);
+        
+    }
+    
 }
 
 function createLasersPlayer1() {
@@ -668,6 +738,53 @@ function drawPlayer2(){
         }
     }
 }
+
+function drawSpace () {
+    
+    context.fillStyle = "black";
+    context.fillRect(0, 0, 1280, 720);
+    
+    mountainScroll[0] -= 4;
+    if (mountainScroll[0] < -1280) mountainScroll[0] += 1280;
+    
+    mountainScroll[1] -= 3;
+    if (mountainScroll[1] < -1280) mountainScroll[1] += 1280;
+    
+    mountainScroll[2] -= 2;
+    if (mountainScroll[2] < -1280) mountainScroll[2] += 1280;
+    
+    for (var i = 0; i < mountainStars.length; i++) {
+        mountainStars[i][0]--;
+        if (mountainStars[i][0] < 0) {
+            mountainStars[i][0] += 1280;
+            mountainStars[i][1] = Math.random() * 720;
+        }
+        context.fillStyle = "red";
+        if (i % 3 == 1) context.fillStyle = "white";
+        if (i % 3 == 2) context.fillStyle = "blue";
+        
+        context.fillRect(mountainStars[i][0], mountainStars[i][1], 2, 2);
+    }
+    
+    for (var ii = 2; ii >= 0; ii--) {
+        
+    
+        if (ii == 0) context.fillStyle = "#000033";
+        if (ii == 1) context.fillStyle = "#000022";
+        if (ii == 2) context.fillStyle = "#000011";
+        
+        context.beginPath();
+        context.moveTo(mountainScroll[ii], 720);
+    
+        for (var i = 0; i < mountain.length; i++) {
+            context.lineTo(mountainScroll[ii] + (i * 40), mountain[i] - (ii * 100));
+        }
+    
+        context.lineTo(mountainScroll[ii] + 2560, 720);
+        context.fill();
+    }
+}
+
 function drawLaserPlayer1(){
     if(livesP1>0){
         //move laser
