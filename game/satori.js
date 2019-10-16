@@ -12,7 +12,7 @@ var Satori = new Satori();
 const FPS = 60;
 const BLINK_TIME = 3; //blink every x seconds
 const BACKGROUND_SPEED = 3; //speed of background in pixels per second
-const DEBUG_MODE = true; //when debug mode enabled - now you can press / to turn debug mode on or off
+const DEBUG_MODE = false; //when debug mode enabled - now you can press / to turn debug mode on or off
 const INVINCIBLE = false; //loses no lives on ship collisions if true
 
 //SHIP
@@ -105,10 +105,6 @@ for (var i = 0; i < 300; i++) {
 }
 
 var showWorkings = -1; // just for testing, pressing forward slash during game shows various background data
-
-//sound effects
-
-//music
 
 //---------- ASSETS
 //backgrounds
@@ -896,7 +892,7 @@ function drawLives()
         context.font = "25px Courier New";
         context.fillStyle = "white";
         context.textAlign = "left"; 
-        context.fillText(scoreP2,canvas.width-125,25);
+        context.fillText(scoreP2,canvas.width-165,25);
         
         //LIVES
         for(var i = 0; i<livesP2; i++)
@@ -1254,6 +1250,7 @@ function explodePlayer2()
     if (explosionP2.displayCountdown <= 0) {
         explodingP2 = false;
         phoenix = newShip('../assets/gfx/player2.png', 65, 65);
+        phoenix.y=canvas.width/4;
     }
 }
 
@@ -1360,7 +1357,7 @@ function drawTitle() {
     if (currentStage == lastStage) bestStage = 99;
     
     if (bestStage == 99) {
-        context.fillText("GAME STATUS: ALL WAVES DEFEATED", 640, 360 + 90);
+        context.fillText("GAME STATUS: ALL WAVES DEFEATED", 640, 310 + 90);
     } else if (bestStage > -1) {
         context.fillText("HIGHEST WAVE REACHED: " + (bestStage + 1), 640, 310 + 90);
     }
