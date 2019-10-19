@@ -409,9 +409,9 @@ function Satori()
                 if (event.keyCode == 39) event.preventDefault(); // right
                 if (event.keyCode == 13) event.preventDefault(); // enter
                 
-                if (event.keyCode == '190') silentMode *= -1;
+                if (event.keyCode == 77) silentMode *= -1;
                 if (gamemode == 0) {
-                    if (event.keyCode == '32' && titleCounter > 50) {
+                    if (event.keyCode == 13 && titleCounter > 50) {
                         fxCoin.play();
                         newGame();
                     }
@@ -1377,9 +1377,23 @@ function drawTitle() {
         }
 
         if ((titleCounter + 50) % 80 < 60) {
-            context.fillText("PRESS SPACE TO START", 640, 360 + 180);
+            context.fillText("PRESS ENTER TO START", 640, 360 + 180);
         }
+        context.fillStyle = "cyan";
+        context.fillText("CONTROLS: ARROWS AND ENTER (P1) WASD AND SHIFT (P2)", 640, 360 + 180 + 45);
         
+    }
+    
+    context.font = "15px monospace";
+    context.textAlign = "center";
+    if (silentMode == -1) {
+        context.fillStyle = "red";
+        context.fillText("SOUND: ON", 1160, 680);
+        context.fillText("PRESS M TO MUTE", 1160, 700);
+    } else {
+        context.fillStyle = "gray";
+        context.fillText("SOUND: OFF", 1160, 680);
+        context.fillText("PRESS M TO UNMUTE", 1160, 700);
     }
     
 }
