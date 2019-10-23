@@ -442,7 +442,6 @@ function Satori()
                 else if(event.keyCode == '13' && shootingP1 == -1) //shoot
                 {
                     shootingP1 = SHOT_REPEAT_SPEED - 1;
-                    shotsTakenP1++;
                     console.log("Shoot P1 key pressed");
                 }
                 //----------- PLAYER 2
@@ -469,7 +468,6 @@ function Satori()
                 else if(event.keyCode == '16' && shootingP2 == -1) //shoot
                 {
                     shootingP2 = SHOT_REPEAT_SPEED - 1;
-                    shotsTakenP2++;
                     console.log("Shoot P2 key pressed");
                 }
 
@@ -628,6 +626,7 @@ function createLasersPlayer1() {
     
     if (singleP1.lasers.length<MAX_SHOTS && explodingP1 == false && livesP1>0) {
         fxShot.play();
+        shotsTakenP1++;
         singleP1.lasers.push([supernova.x + 16, supernova.y + 45, singleP1.width, singleP1.height, false, 0]);
     }
 }
@@ -639,6 +638,7 @@ function createLasersPlayer2() {
     shootingP2 = 0;
     
     if (singleP2.lasers.length<MAX_SHOTS && explodingP2 == false && livesP2>0) {
+        shotsTakenP2++;
         fxShot.play();
         singleP2.lasers.push([phoenix.x + 16, phoenix.y + 45, singleP2.width, singleP2.height, false, 0]);
     }
