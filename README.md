@@ -1,37 +1,15 @@
 # Satori
+Satori is a side-scrolling shoot'em up inspired by arcade games. It can be played alone or by two players simultaneously. The aim is to beat the game by getting through 15 gruelling waves of varying enemies and difficulties. 
 
-<h1>Satori</h1>
-Side scrolling shoot ‘em up - inspired by Blazing Star<br/>
+<h1>About</h1>
+Satori was created in October 2019 by O.M.C and Marius Evans and was written in vanilla JS. 
 
-<b>Resources to help with programming:</b> <br/>
-<ul>
-  <li>https://medium.com/jared-mills/creating-a-simple-space-shooter-game-for-the-browser-401f8adde1ad</li>
-  <li>http://atomicrobotdesign.com/blog/htmlcss/build-a-vertical-scrolling-shooter-game-with-html5-canvas-part-6/</li>
-<ul>
-  
-<h2>General Concept</h2>
-1.	Three levels – Short <br>
-CRT screen?<br>
-Enemy patterns of blazing star<br>
-Level One – Forest<br>
-Level Two – Space<br>
-Level Three – In Spaceship<br>
+The game features 3 different types of enemies and a play-through which is different every time. 
 
-2.	Bonuses<br>
-Points bonuses<br>
-Missiles<br>
+<h1>Controls</h1>
+The directional arrows to move and enter to shoot for Player 1. Make sure to use your left hand for the directional keys and your right hand for enter.
+WASD to move and shift to shoot for Player 2. Use the shift on the left side of the keyboard, it is near caps lock.
+Audio can be muted by pressing M and the game can also be paused with P.
 
-3.	Select routes?<br>
-Go down through pits or forward<br>
-
-4.	Character selections?<br>
-Character 1 – Standard Fast Heavy Machine Guns Straight<br>
-Character 2 – Medium Shotgun Spread<br>
-Character 3 – Laser constant (with charge)<br>
-
-5.	Animated backgrounds?<br>
-Water<br>
-Clouds<br>
-
-6.	Two player simulatenous / alternating?<br>
-Alternating
+<h1>Compatible browsers</h1>
+This game works in the following browsers: Opera, Google Chrome and Safari 
